@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-// 直接把 ColNode 定義在這邊
 class ColNode {
     String value;
     ColNode left, right;
@@ -10,7 +9,6 @@ class ColNode {
 
 public class TraversalTestReport {
 
-    // 直接把 preorder 邏輯整合進來
     private static List<String> preorder(ColNode node) {
         List<String> result = new ArrayList<>();
         preorderHelper(node, result);
@@ -34,7 +32,6 @@ public class TraversalTestReport {
 
     private static void runTest(String testName, ColNode root, List<String> expectedPreorder) {
         System.out.println("=== 測試案例: " + testName + " ===");
-        // 改為呼叫自己檔案內的 preorder
         List<String> actual = preorder(root);
         boolean isPass = actual.equals(expectedPreorder);
         
