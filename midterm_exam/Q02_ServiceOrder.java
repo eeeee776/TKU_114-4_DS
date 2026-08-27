@@ -67,15 +67,5 @@ public class Q02_ServiceOrder {
         }
         return java.util.Collections.unmodifiableList(summaries);
     }
-    // 將這段加在 Q02_ServiceOrder 類別的最下方
-    public static void main(String[] args) {
-        Q02_ServiceOrder order = new Q02_ServiceOrder("R-01");
-        order.addItem("Inspection", 300, 1);
-        order.addItem("Cable", 80, 4);
-        order.addItem("Cleaning", 200, 1);
-        System.out.println(order.itemCount());        // 預期: 3
-        System.out.println(order.totalAmount());      // 預期: 820
-        System.out.println(order.largestItemName());  // 預期: Cable
-        System.out.println(order.itemSummaries());    // 預期: [Inspection:300, Cable:320, Cleaning:200]
-    }
+    
 }
