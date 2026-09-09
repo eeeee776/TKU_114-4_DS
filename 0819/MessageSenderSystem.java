@@ -1,34 +1,47 @@
 interface MessageSender {
-    void send(String receiver, String message);
+    boolean send(String receiver, String message);
 }
 
 class EmailSender implements MessageSender {
     @Override
-    public void send(String receiver, String message) { System.out.println("Email -> " + receiver + ": " + message); }
+    public boolean send(String receiver, String message) {
+        if (receiver == null || receiver.isBlank() || message == null || message.isBlank()) return false;
+        System.out.println("EMAIL to " + receiver + ": " + message);
+        return true;
+    }
 }
 
 class SmsSender implements MessageSender {
     @Override
-    public void send(String receiver, String message) { System.out.println("SMS -> " + receiver + ": " + message); }
+    public boolean send(String receiver, String message) {
+        if (receiver == null || receiver.isBlank() || message == null || message.isBlank()) return false;
+        System.out.println("SMS to " + receiver + ": " + message);
+        return true;
+    }
 }
 
 class ConsoleSender implements MessageSender {
     @Override
-    public void send(String receiver, String message) { System.out.println("Console -> " + receiver + ": " + message); }
+    public boolean send(String receiver, String message) {
+        if (receiver == null || receiver.isBlank() || message == null || message.isBlank()) return false;
+        System.out.println("CONSOLE to " + receiver + ": " + message);
+        return true;
+    }
 }
 
 public class MessageSenderSystem {
     static void notify(MessageSender sender, String receiver, String message) {
-        if (receiver == null || receiver.isBlank() || message == null || message.isBlank()) {
-            System.out.println("錯誤：收件人或訊息不可為空");
-            return;
-        }
         sender.send(receiver, message);
     }
 
     public static void main(String[] args) {
-        notify(new EmailSender(), "amy@example.com", "Hello");
-        notify(new SmsSender(), "0912345678", "Your code is 1234");
-        notify(new ConsoleSender(), "", "Test"); // 測試邊界條件
+        MessageSender email = new EmailSender();
+        MessageSender sms = new SmsSender();
+        MessageSender console = new ConsoleSender();
+
+        notify(email, "amy@example.com", "Hello");
+        notify(sms, "0912345678", "Class update");
+        notify(console, "Admin", "System online");
+        notify(email, " ", "Empty receiver test");
     }
 }

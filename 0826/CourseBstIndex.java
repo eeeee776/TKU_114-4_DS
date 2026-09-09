@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class Course {
+class Course0826 {
     int code;
     String name;
     int credit;

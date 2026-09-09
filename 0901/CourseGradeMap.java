@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CourseGradeMap {
+public GradeMap {
     private final Map<String, List<Integer>> grades = new HashMap<>();
 
     public void addGrade(String courseId, int score) {

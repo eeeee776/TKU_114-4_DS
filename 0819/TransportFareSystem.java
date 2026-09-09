@@ -13,31 +13,38 @@ abstract class Transport {
 }
 
 class Bus extends Transport {
-    Bus(String routeName) { super(routeName); }
+    Bus(String routeName) {
+        super(routeName);
+    }
 
     @Override
     int calculateFare(int distance) {
-        return 15; // 公車固定費率範例
+        return 15;
     }
 }
 
 class Taxi extends Transport {
-    Taxi(String routeName) { super(routeName); }
+    Taxi(String routeName) {
+        super(routeName);
+    }
 
     @Override
     int calculateFare(int distance) {
-        return 85 + (Math.max(0, distance - 1) * 20); // 計程車里程計費範例
+        return 70 + Math.max(0, distance - 1) * 25;
     }
 }
 
 public class TransportFareSystem {
     public static void main(String[] args) {
         Transport[] transports = {
-            new Bus("307"), new Taxi("Uber"), new Bus("299"), new Taxi("55688")
+            new Bus("307"),
+            new Bus("262"),
+            new Taxi("Local"),
+            new Taxi("Airport")
         };
 
         for (Transport t : transports) {
-            System.out.println(t.getRouteName() + " 票價：" + t.calculateFare(5));
+            System.out.println(t.getRouteName() + " fare: " + t.calculateFare(5));
         }
     }
 }

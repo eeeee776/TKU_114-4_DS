@@ -1,19 +1,22 @@
-// --- Pricing Policy (計價策略) ---
 interface PricingPolicy {
     int finalPrice(int originalPrice);
 }
 
 class StandardPricing implements PricingPolicy {
     @Override
-    public int finalPrice(int originalPrice) { return Math.max(0, originalPrice); }
+    public int finalPrice(int originalPrice) {
+        return Math.max(0, originalPrice);
+    }
 }
 
 class VipPricing implements PricingPolicy {
     @Override
-    public int finalPrice(int originalPrice) { return Math.max(0, originalPrice) * 85 / 100; }
+    public int finalPrice(int originalPrice) {
+        return Math.max(0, originalPrice) * 85 / 100;
+    }
 }
 
-class Discount2000Pricing implements PricingPolicy {
+class DiscountPricing implements PricingPolicy {
     @Override
     public int finalPrice(int originalPrice) {
         int price = Math.max(0, originalPrice);
@@ -21,7 +24,6 @@ class Discount2000Pricing implements PricingPolicy {
     }
 }
 
-// --- Notification Channel (通知頻道) ---
 interface NotificationChannel {
     boolean send(String receiver, String message);
 }
@@ -30,7 +32,7 @@ class EmailChannel implements NotificationChannel {
     @Override
     public boolean send(String receiver, String message) {
         if (receiver == null || !receiver.contains("@")) return false;
-        System.out.println("EMAIL to [" + receiver + "] : " + message);
+        System.out.println("EMAIL to " + receiver + ": " + message);
         return true;
     }
 }
@@ -39,7 +41,7 @@ class SmsChannel implements NotificationChannel {
     @Override
     public boolean send(String receiver, String message) {
         if (receiver == null || receiver.isBlank()) return false;
-        System.out.println("SMS to [" + receiver + "] : " + message);
+        System.out.println("SMS to " + receiver + ": " + message);
         return true;
     }
 }
@@ -47,35 +49,34 @@ class SmsChannel implements NotificationChannel {
 class ConsoleChannel implements NotificationChannel {
     @Override
     public boolean send(String receiver, String message) {
-        System.out.println("CONSOLE (Counter) -> " + message);
+        System.out.println("CONSOLE to " + receiver + ": " + message);
         return true;
     }
 }
 
-// --- Checkout System (結帳服務) ---
 class CheckoutResult {
-    public final String orderId;
-    public final int originalPrice;
-    public final int finalPrice;
-    public final boolean notificationSent;
+    String orderId;
+    int originalPrice;
+    int finalPrice;
+    boolean notificationStatus;
 
-    public CheckoutResult(String orderId, int originalPrice, int finalPrice, boolean notificationSent) {
+    CheckoutResult(String orderId, int originalPrice, int finalPrice, boolean notificationStatus) {
         this.orderId = orderId;
         this.originalPrice = originalPrice;
         this.finalPrice = finalPrice;
-        this.notificationSent = notificationSent;
+        this.notificationStatus = notificationStatus;
     }
 
     @Override
     public String toString() {
-        return String.format("Result: Order %s | 原價 %d -> 實付 %d | 通知成功: %b",
-                orderId, originalPrice, finalPrice, notificationSent);
+        return "Result[order=" + orderId + ", original=" + originalPrice + 
+               ", final=" + finalPrice + ", notified=" + notificationStatus + "]";
     }
 }
 
 class CheckoutService {
-    private final PricingPolicy pricing;
-    private final NotificationChannel channel;
+    private PricingPolicy pricing;
+    private NotificationChannel channel;
 
     CheckoutService(PricingPolicy pricing, NotificationChannel channel) {
         this.pricing = pricing;
@@ -83,32 +84,26 @@ class CheckoutService {
     }
 
     CheckoutResult checkout(String orderId, int originalPrice, String receiver) {
-        if (orderId == null || orderId.isBlank() || originalPrice < 0) {
-            return new CheckoutResult(orderId, originalPrice, 0, false);
-        }
-        int amount = pricing.finalPrice(originalPrice);
-        boolean sent = channel.send(receiver, "您的訂單 " + orderId + " 已成立，實付金額: " + amount);
-        return new CheckoutResult(orderId, originalPrice, amount, sent);
+        int finalPrice = pricing.finalPrice(originalPrice);
+        boolean status = channel.send(receiver, "Order " + orderId + " completed. Final price: " + finalPrice);
+        return new CheckoutResult(orderId, originalPrice, finalPrice, status);
     }
 }
 
 public class FlexibleCheckoutSystem {
     public static void main(String[] args) {
-        // 建立至少六種計價與通知的組合測試
-        CheckoutService[] combinations = {
-            new CheckoutService(new StandardPricing(), new ConsoleChannel()),
-            new CheckoutService(new VipPricing(), new EmailChannel()),
-            new CheckoutService(new Discount2000Pricing(), new SmsChannel()),
-            new CheckoutService(new StandardPricing(), new EmailChannel()),
-            new CheckoutService(new VipPricing(), new SmsChannel()),
-            new CheckoutService(new Discount2000Pricing(), new ConsoleChannel())
-        };
+        CheckoutService s1 = new CheckoutService(new StandardPricing(), new ConsoleChannel());
+        CheckoutService s2 = new CheckoutService(new VipPricing(), new EmailChannel());
+        CheckoutService s3 = new CheckoutService(new DiscountPricing(), new SmsChannel());
+        CheckoutService s4 = new CheckoutService(new VipPricing(), new ConsoleChannel());
+        CheckoutService s5 = new CheckoutService(new DiscountPricing(), new EmailChannel());
+        CheckoutService s6 = new CheckoutService(new StandardPricing(), new SmsChannel());
 
-        System.out.println(combinations[0].checkout("O201", 1500, "counter"));
-        System.out.println(combinations[1].checkout("O202", 2000, "vip@example.com"));
-        System.out.println(combinations[2].checkout("O203", 2500, "0987654321"));
-        System.out.println(combinations[3].checkout("O204", 800, "invalid_email")); // 測試失敗通知
-        System.out.println(combinations[4].checkout("O205", 1200, "0911222333"));
-        System.out.println(combinations[5].checkout("O206", 1999, "admin"));
+        System.out.println(s1.checkout("O01", 1000, "Admin"));
+        System.out.println(s2.checkout("O02", 2000, "amy@mail.com"));
+        System.out.println(s3.checkout("O03", 2500, "0912345678"));
+        System.out.println(s4.checkout("O04", 500, "Counter"));
+        System.out.println(s5.checkout("O05", 2200, "invalid_email"));
+        System.out.println(s6.checkout("O06", 1500, "0987654321"));
     }
 }

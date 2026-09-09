@@ -1,69 +1,74 @@
 interface ReportExporter {
-    String export(String title, int[] values);
+    void export(String title, int[] values);
 }
 
 class CsvExporter implements ReportExporter {
     @Override
-    public String export(String title, int[] values) {
-        StringBuilder sb = new StringBuilder(title).append("\\n");
-        if (values != null) {
-            for (int i = 0; i < values.length; i++) {
-                sb.append(values[i]);
-                if (i < values.length - 1) sb.append(",");
-            }
+    public void export(String title, int[] values) {
+        System.out.print(title + " [CSV]: ");
+        if (values == null) {
+            System.out.println("No data");
+            return;
         }
-        return sb.toString();
+        for (int i = 0; i < values.length; i++) {
+            System.out.print(values[i] + (i < values.length - 1 ? "," : ""));
+        }
+        System.out.println();
     }
 }
 
 class JsonExporter implements ReportExporter {
     @Override
-    public String export(String title, int[] values) {
-        StringBuilder sb = new StringBuilder("{\\n  \"title\": \"").append(title).append("\",\\n  \"values\": [");
+    public void export(String title, int[] values) {
+        System.out.print(title + " [JSON]: [");
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
-                sb.append(values[i]);
-                if (i < values.length - 1) sb.append(", ");
+                System.out.print(values[i] + (i < values.length - 1 ? ", " : ""));
             }
         }
-        return sb.append("]\\n}").toString();
+        System.out.println("]");
     }
 }
 
 class TextExporter implements ReportExporter {
     @Override
-    public String export(String title, int[] values) {
-        StringBuilder sb = new StringBuilder("--- ").append(title).append(" ---\\n");
-        if (values != null) {
-            for (int val : values) {
-                sb.append("- ").append(val).append("\\n");
-            }
+    public void export(String title, int[] values) {
+        System.out.print(title + " [TXT]: ");
+        if (values == null) {
+            System.out.println("Empty");
+            return;
         }
-        return sb.toString();
+        for (int val : values) {
+            System.out.print(val + " ");
+        }
+        System.out.println();
     }
 }
 
 public class ReportExporterFactory {
     static ReportExporter createExporter(String format) {
-        if ("csv".equalsIgnoreCase(format)) return new CsvExporter();
-        if ("json".equalsIgnoreCase(format)) return new JsonExporter();
-        return new TextExporter(); // 不支援的格式預設回傳 TextExporter
+        if ("csv".equalsIgnoreCase(format)) {
+            return new CsvExporter();
+        } else if ("json".equalsIgnoreCase(format)) {
+            return new JsonExporter();
+        }
+        return new TextExporter();
     }
 
     static void exportReport(ReportExporter exporter, String title, int[] values) {
-        // 主流程完全不依賴具體的 Exporter 類別 (不使用 instanceof)
-        System.out.println(exporter.export(title, values));
-        System.out.println();
+        exporter.export(title, values);
     }
 
     public static void main(String[] args) {
-        int[] data = {150, 300, 450, 600};
-
-        exportReport(createExporter("CSV"), "第一季營收", data);
-        exportReport(createExporter("JSON"), "第一季營收", data);
-        exportReport(createExporter("XML"), "第一季營收", data); // 測試不支援格式
+        int[] data = {10, 20, 30};
         
-        // 測試 null 安全性
-        exportReport(createExporter("csv"), "無資料報表", null);
+        ReportExporter exp1 = createExporter("csv");
+        ReportExporter exp2 = createExporter("json");
+        ReportExporter exp3 = createExporter("unknown");
+
+        exportReport(exp1, "Sales", data);
+        exportReport(exp2, "Users", data);
+        exportReport(exp3, "Logs", data);
+        exportReport(exp1, "EmptyReport", null);
     }
 }

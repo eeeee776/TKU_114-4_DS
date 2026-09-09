@@ -3,19 +3,19 @@ class Instructor {
     private String name;
 
     Instructor(String id, String name) {
-        this.id = id;
-        this.name = name;
+        this.id = (id == null || id.isBlank()) ? "Unknown" : id;
+        this.name = (name == null || name.isBlank()) ? "Unknown" : name;
     }
 
-    String label() {
-        return id + " " + name;
+    String getInfo() {
+        return name + " (" + id + ")";
     }
 }
 
 class Course {
     private String courseCode;
     private String title;
-    private Instructor instructor; // 使用 Composition 組合物件
+    private Instructor instructor;
 
     Course(String courseCode, String title, Instructor instructor) {
         this.courseCode = courseCode;
@@ -24,24 +24,19 @@ class Course {
     }
 
     String summary() {
-        // 呼叫內部 instructor 的方法來取得教師資訊
-        return courseCode + " - " + title + " (授課教師: " + instructor.label() + ")";
+        return "課程代碼: " + courseCode + " | 課程名稱: " + title + " | 授課教師: " + instructor.getInfo();
     }
 }
 
 public class CourseComposition {
     public static void main(String[] args) {
-        // 建立單一 Instructor 物件
-        Instructor sharedInstructor = new Instructor("T001", "Dr. Alan");
-        Instructor anotherInstructor = new Instructor("T002", "Prof. Lin");
+        Instructor profCheng = new Instructor("T001", "Pei-Yu Cheng");
 
-        // 兩門課程共用 sharedInstructor
-        Course javaCourse = new Course("CS101", "Java 物件導向", sharedInstructor);
-        Course dataStructure = new Course("CS201", "資料結構", sharedInstructor);
-        Course dbCourse = new Course("CS301", "資料庫設計", anotherInstructor);
+        Course dsCourse = new Course("DS201", "資料結構", profCheng);
+        Course progCourse = new Course("PR101", "程式設計", profCheng);
 
-        System.out.println(javaCourse.summary());
-        System.out.println(dataStructure.summary());
-        System.out.println(dbCourse.summary());
+        System.out.println("--- 課程清單 ---");
+        System.out.println(dsCourse.summary());
+        System.out.println(progCourse.summary());
     }
 }

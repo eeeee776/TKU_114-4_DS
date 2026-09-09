@@ -1,71 +1,69 @@
 interface DeliveryMethod {
-    int calculateFee(int amount);
-    String getEstimatedTime();
+    int calculateFee();
+    String getDescription();
 }
 
 class HomeDelivery implements DeliveryMethod {
     @Override
-    public int calculateFee(int amount) {
-        return amount >= 1000 ? 0 : 120; // 滿千免運
+    public int calculateFee() {
+        return 120;
     }
 
     @Override
-    public String getEstimatedTime() {
-        return "約 1-2 個工作天配達";
+    public String getDescription() {
+        return "Home Delivery (2-3 days)";
     }
 }
 
 class StorePickup implements DeliveryMethod {
     @Override
-    public int calculateFee(int amount) {
-        return amount >= 600 ? 0 : 60;
+    public int calculateFee() {
+        return 60;
     }
 
     @Override
-    public String getEstimatedTime() {
-        return "約 2-3 個工作天送達指定門市";
+    public String getDescription() {
+        return "Convenience Store Pickup (3-5 days)";
     }
 }
 
 class SelfPickup implements DeliveryMethod {
     @Override
-    public int calculateFee(int amount) {
-        return 0; // 自取免運費
+    public int calculateFee() {
+        return 0;
     }
 
     @Override
-    public String getEstimatedTime() {
-        return "立即準備，可隨時至實體店面取貨";
+    public String getDescription() {
+        return "Self Pickup at Store (Available now)";
     }
 }
 
 class OrderService {
     private DeliveryMethod deliveryMethod;
 
-    public OrderService(DeliveryMethod deliveryMethod) {
+    OrderService(DeliveryMethod deliveryMethod) {
         this.deliveryMethod = deliveryMethod;
     }
 
-    public void processOrder(int amount) {
-        System.out.println("訂單金額: " + amount);
-        System.out.println("運費: " + deliveryMethod.calculateFee(amount));
-        System.out.println("預估時間: " + deliveryMethod.getEstimatedTime());
-        System.out.println("---------------------------");
+    void processOrder(int orderTotal) {
+        int shippingFee = deliveryMethod.calculateFee();
+        System.out.println("Order Total: " + orderTotal);
+        System.out.println("Delivery: " + deliveryMethod.getDescription());
+        System.out.println("Shipping Fee: " + shippingFee);
+        System.out.println("Grand Total: " + (orderTotal + shippingFee));
+        System.out.println("-------------------------");
     }
 }
 
 public class DeliveryStrategySystem {
     public static void main(String[] args) {
-        System.out.println("[宅配服務]");
-        OrderService homeService = new OrderService(new HomeDelivery());
-        homeService.processOrder(800);
+        OrderService order1 = new OrderService(new HomeDelivery());
+        OrderService order2 = new OrderService(new StorePickup());
+        OrderService order3 = new OrderService(new SelfPickup());
 
-        System.out.println("[超商取貨服務]");
-        OrderService storeService = new OrderService(new StorePickup());
-        storeService.processOrder(800);
-
-        System.out.println("[自取服務]");
-        OrderService pickupService = new OrderService(new SelfPickup());
-        pickupService.processOrder(800);
+        order1.processOrder(1000);
+        order2.processOrder(850);
+        order3.processOrder(1200);
     }
 }

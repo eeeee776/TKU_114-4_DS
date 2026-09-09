@@ -5,47 +5,54 @@ abstract class EmployeeBase {
     EmployeeBase(String id, String name) {
         this.id = id;
         this.name = name;
-        System.out.println("EmployeeBase 建構子被呼叫");
+        System.out.println("EmployeeBase constructor");
+    }
+
+    String getName() {
+        return name;
     }
 
     abstract int calculatePay();
 }
 
 class FullTimeEmployee extends EmployeeBase {
-    private int monthlySalary;
+    private int salary;
 
-    FullTimeEmployee(String id, String name, int monthlySalary) {
+    FullTimeEmployee(String id, String name, int salary) {
         super(id, name);
-        this.monthlySalary = Math.max(0, monthlySalary);
-        System.out.println("FullTimeEmployee 建構子被呼叫");
+        this.salary = Math.max(0, salary);
+        System.out.println("FullTimeEmployee constructor");
     }
 
     @Override
-    int calculatePay() { return monthlySalary; }
+    int calculatePay() {
+        return salary;
+    }
 }
 
 class PartTimeEmployee extends EmployeeBase {
-    private int hours, hourlyRate;
+    private int hourlyRate;
+    private int hours;
 
-    PartTimeEmployee(String id, String name, int hours, int hourlyRate) {
+    PartTimeEmployee(String id, String name, int hourlyRate, int hours) {
         super(id, name);
-        this.hours = Math.max(0, hours);
         this.hourlyRate = Math.max(0, hourlyRate);
-        System.out.println("PartTimeEmployee 建構子被呼叫");
+        this.hours = Math.max(0, hours);
+        System.out.println("PartTimeEmployee constructor");
     }
 
     @Override
-    int calculatePay() { return hours * hourlyRate; }
+    int calculatePay() {
+        return hourlyRate * hours;
+    }
 }
 
 public class EmployeeConstructorChain {
     public static void main(String[] args) {
-        System.out.println("--- 建立全職員工 ---");
-        EmployeeBase fte = new FullTimeEmployee("E01", "Alice", 50000);
-        
-        System.out.println("--- 建立兼職員工 ---");
-        EmployeeBase pte = new PartTimeEmployee("E02", "Bob", -10, 200); // 測試負數時數
-        
-        System.out.println("Bob 薪資: " + pte.calculatePay());
+        EmployeeBase fullTime = new FullTimeEmployee("F01", "Amy", 50000);
+        System.out.println(fullTime.getName() + " pay: " + fullTime.calculatePay());
+
+        EmployeeBase partTime = new PartTimeEmployee("P01", "Ben", -200, 80);
+        System.out.println(partTime.getName() + " pay: " + partTime.calculatePay());
     }
 }

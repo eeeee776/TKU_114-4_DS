@@ -1,35 +1,67 @@
 abstract class Device {
+    private String name;
+
+    Device(String name) {
+        this.name = name;
+    }
+
+    String getName() {
+        return name;
+    }
+
     abstract void runDiagnostic();
 }
 
 class Laptop extends Device {
+    Laptop(String name) {
+        super(name);
+    }
+
     @Override
-    void runDiagnostic() { System.out.println("筆電：檢查記憶體與硬碟..."); }
+    void runDiagnostic() {
+        System.out.println("Checking CPU and RAM for Laptop: " + getName());
+    }
 }
 
 class Router extends Device {
+    Router(String name) {
+        super(name);
+    }
+
     @Override
-    void runDiagnostic() { System.out.println("路由器：檢查網路連線狀態..."); }
+    void runDiagnostic() {
+        System.out.println("Checking network connection for Router: " + getName());
+    }
 }
 
 class Printer extends Device {
-    @Override
-    void runDiagnostic() { System.out.println("印表機：檢查墨水與紙張..."); }
+    Printer(String name) {
+        super(name);
+    }
 
-    void cleanPrintHead() { System.out.println("印表機 (專屬動作)：清洗印字頭..."); }
+    @Override
+    void runDiagnostic() {
+        System.out.println("Checking ink levels for Printer: " + getName());
+    }
+
+    void cleanPrintHead() {
+        System.out.println("Cleaning print head for Printer: " + getName());
+    }
 }
 
 public class DeviceInspectionSystem {
     public static void main(String[] args) {
         Device[] devices = {
-            new Laptop(), new Printer(), new Router(), new Printer()
+            new Laptop("Office-Laptop"),
+            new Router("Main-Router"),
+            new Printer("Lobby-Printer"),
+            new Printer("Sales-Printer")
         };
 
-        for (Device device : devices) {
-            device.runDiagnostic(); // 多型操作
+        for (Device d : devices) {
+            d.runDiagnostic();
             
-            // 安全的向下轉型 (Pattern Matching for instanceof)
-            if (device instanceof Printer printer) {
+            if (d instanceof Printer printer) {
                 printer.cleanPrintHead();
             }
         }
