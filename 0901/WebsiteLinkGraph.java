@@ -1,69 +1,77 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class WebsiteLinkGraph {
-    // Map 的 Key 存網址，Value 存該網址對外的所有連結 (Outgoing Links)
-    private final Map<String, Set<String>> outgoingLinks = new HashMap<>();
+    private final Map<String, List<String>> graph = new LinkedHashMap<>();
 
     public void addPage(String url) {
-        outgoingLinks.putIfAbsent(url, new HashSet<>());
-    }
-
-    public void addLink(String fromUrl, String toUrl) {
-        if (!outgoingLinks.containsKey(fromUrl) || !outgoingLinks.containsKey(toUrl)) {
-            throw new IllegalArgumentException("Page must be added first.");
+        if (url != null && !url.isBlank()) {
+            graph.putIfAbsent(url, new ArrayList<>());
         }
-        outgoingLinks.get(fromUrl).add(toUrl);
     }
 
-    public Set<String> getOutgoingLinks(String url) {
-        return outgoingLinks.getOrDefault(url, Set.of());
+    public boolean addLink(String from, String to) {
+        if (!graph.containsKey(from) || !graph.containsKey(to)) return false;
+        List<String> links = graph.get(from);
+        if (!links.contains(to)) {
+            links.add(to);
+            return true;
+        }
+        return false;
+    }
+
+    public List<String> getOutgoingLinks(String url) {
+        return new ArrayList<>(graph.getOrDefault(url, new ArrayList<>()));
     }
 
     public int getIncomingCount(String url) {
-        if (!outgoingLinks.containsKey(url)) return 0;
+        if (!graph.containsKey(url)) return 0;
         int count = 0;
-        for (Set<String> links : outgoingLinks.values()) {
+        for (List<String> links : graph.values()) {
             if (links.contains(url)) count++;
         }
         return count;
     }
 
-    public List<String> getPagesWithNoIncoming() {
+    public List<String> getNoIncomingPages() {
         List<String> result = new ArrayList<>();
-        for (String url : outgoingLinks.keySet()) {
-            if (getIncomingCount(url) == 0) result.add(url);
+        for (String url : graph.keySet()) {
+            if (getIncomingCount(url) == 0) {
+                result.add(url);
+            }
         }
+        Collections.sort(result);
         return result;
     }
 
-    public List<String> getPagesWithNoOutgoing() {
+    public List<String> getNoOutgoingPages() {
         List<String> result = new ArrayList<>();
-        for (Map.Entry<String, Set<String>> entry : outgoingLinks.entrySet()) {
-            if (entry.getValue().isEmpty()) result.add(entry.getKey());
+        for (Map.Entry<String, List<String>> entry : graph.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                result.add(entry.getKey());
+            }
         }
+        Collections.sort(result);
         return result;
     }
 
     public static void main(String[] args) {
         WebsiteLinkGraph web = new WebsiteLinkGraph();
-        String[] pages = {"Home", "About", "Contact", "Blog", "HiddenPage"};
-        for (String p : pages) web.addPage(p);
+        web.addPage("Index");
+        web.addPage("About");
+        web.addPage("Contact");
+        web.addPage("Secret");
 
-        web.addLink("Home", "About");
-        web.addLink("Home", "Contact");
-        web.addLink("Home", "Blog");
-        web.addLink("About", "Home");
-        web.addLink("Blog", "Home");
-        // HiddenPage 無人連結，Contact 沒有連出去
+        web.addLink("Index", "About");
+        web.addLink("Index", "Contact");
+        web.addLink("About", "Contact");
 
-        System.out.println("Home 對外連結: " + web.getOutgoingLinks("Home"));
-        System.out.println("Home 被連結次數: " + web.getIncomingCount("Home"));
-        System.out.println("無外部連結指向的頁面 (孤島): " + web.getPagesWithNoIncoming());
-        System.out.println("無對外連結的頁面 (死胡同): " + web.getPagesWithNoOutgoing());
+        System.out.println("Index Outgoing: " + web.getOutgoingLinks("Index"));
+        System.out.println("Contact Incoming Count: " + web.getIncomingCount("Contact"));
+        System.out.println("No Incoming Pages: " + web.getNoIncomingPages());
+        System.out.println("No Outgoing Pages: " + web.getNoOutgoingPages());
     }
 }

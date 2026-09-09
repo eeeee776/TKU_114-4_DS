@@ -2,87 +2,80 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ResizableStringMap {
-    private record Entry(String key, String value) {}
+    private record HashEntry(String key, String value) {}
 
-    private List<List<Entry>> buckets;
+    private List<List<HashEntry>> buckets;
     private int size;
-    private static final double LOAD_FACTOR_THRESHOLD = 0.75;
 
     public ResizableStringMap(int initialCapacity) {
+        if (initialCapacity <= 0) throw new IllegalArgumentException();
         buckets = new ArrayList<>();
-        for (int i = 0; i < initialCapacity; i++) {
-            buckets.add(new ArrayList<>());
-        }
+        for (int i = 0; i < initialCapacity; i++) buckets.add(new ArrayList<>());
     }
 
-    private int index(String key, int bucketCount) {
-        if (key == null) throw new IllegalArgumentException("key cannot be null");
-        return Math.floorMod(key.hashCode(), bucketCount);
+    private int getIndex(String key, int capacity) {
+        return Math.floorMod(key.hashCode(), capacity);
     }
 
     public void put(String key, String value) {
-        if (loadFactor() > LOAD_FACTOR_THRESHOLD) {
+        if (key == null) return;
+        
+        if ((double) size / buckets.size() > 0.75) {
             rehash();
         }
 
-        int idx = index(key, buckets.size());
-        List<Entry> chain = buckets.get(idx);
+        int index = getIndex(key, buckets.size());
+        List<HashEntry> chain = buckets.get(index);
         
-        // 更新既有 key
         for (int i = 0; i < chain.size(); i++) {
             if (chain.get(i).key().equals(key)) {
-                chain.set(i, new Entry(key, value));
+                chain.set(i, new HashEntry(key, value));
                 return;
             }
         }
-        
-        // 新增 entry
-        chain.add(new Entry(key, value));
+        chain.add(new HashEntry(key, value));
         size++;
-    }
-
-    public String get(String key) {
-        int idx = index(key, buckets.size());
-        for (Entry entry : buckets.get(idx)) {
-            if (entry.key().equals(key)) return entry.value();
-        }
-        return null;
     }
 
     private void rehash() {
         int newCapacity = buckets.size() * 2 + 1;
-        List<List<Entry>> newBuckets = new ArrayList<>();
-        for (int i = 0; i < newCapacity; i++) {
-            newBuckets.add(new ArrayList<>());
-        }
+        List<List<HashEntry>> newBuckets = new ArrayList<>();
+        for (int i = 0; i < newCapacity; i++) newBuckets.add(new ArrayList<>());
 
-        System.out.println("[System] Rehashing... old capacity: " + buckets.size() + ", new capacity: " + newCapacity);
-
-        // 重新分配所有 entry 到新 bucket
-        for (List<Entry> chain : buckets) {
-            for (Entry entry : chain) {
-                int newIdx = index(entry.key(), newCapacity);
-                newBuckets.get(newIdx).add(entry);
+        for (List<HashEntry> chain : buckets) {
+            for (HashEntry entry : chain) {
+                int newIndex = getIndex(entry.key(), newCapacity);
+                newBuckets.get(newIndex).add(entry);
             }
         }
         buckets = newBuckets;
     }
 
-    public double loadFactor() {
-        return (double) size / buckets.size();
+    public String get(String key) {
+        if (key == null) return null;
+        int index = getIndex(key, buckets.size());
+        for (HashEntry entry : buckets.get(index)) {
+            if (entry.key().equals(key)) return entry.value();
+        }
+        return null;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    public int bucketCount() {
+        return buckets.size();
     }
 
     public static void main(String[] args) {
-        ResizableStringMap map = new ResizableStringMap(3);
-        map.put("A", "Apple");
-        map.put("B", "Banana");
-        System.out.printf("Size: %d, Load Factor: %.2f%n", map.size, map.loadFactor());
-        
-        // 第三次 put 會觸發 rehash (3/3 = 1.0 > 0.75)
-        map.put("C", "Cherry"); 
-        map.put("D", "Date");
-        
-        System.out.printf("Size: %d, Load Factor: %.2f, Buckets: %d%n", map.size, map.loadFactor(), map.buckets.size());
-        System.out.println("Get C: " + map.get("C"));
+        ResizableStringMap map = new ResizableStringMap(2);
+        map.put("A", "1");
+        map.put("B", "2");
+        System.out.println("Buckets after 2 items: " + map.bucketCount());
+        map.put("C", "3");
+        System.out.println("Buckets after rehash: " + map.bucketCount());
+        map.put("A", "99"); 
+        System.out.println("Size: " + map.size() + ", Value A: " + map.get("A"));
     }
 }

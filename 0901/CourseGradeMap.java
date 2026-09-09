@@ -3,53 +3,51 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
-public GradeMap {
-    private final Map<String, List<Integer>> grades = new HashMap<>();
+public class CourseGradeMap {
+    private Map<String, List<Integer>> courseScores = new HashMap<>();
 
-    public void addGrade(String courseId, int score) {
-        if (courseId == null || courseId.isBlank()) return;
-        // 如果該課程還沒有 List，就建立一個新的
-        grades.computeIfAbsent(courseId, k -> new ArrayList<>()).add(score);
+    public void addScore(String courseCode, int score) {
+        if (courseCode == null || courseCode.isBlank()) return;
+        courseScores.putIfAbsent(courseCode, new ArrayList<>());
+        courseScores.get(courseCode).add(Math.max(0, Math.min(100, score)));
     }
 
-    public double getAverage(String courseId) {
-        List<Integer> courseGrades = grades.getOrDefault(courseId, List.of());
-        if (courseGrades.isEmpty()) return 0.0;
-        
+    public double getAverage(String courseCode) {
+        List<Integer> scores = courseScores.get(courseCode);
+        if (scores == null || scores.isEmpty()) return 0.0;
         int sum = 0;
-        for (int score : courseGrades) sum += score;
-        return (double) sum / courseGrades.size();
+        for (int s : scores) sum += s;
+        return (double) sum / scores.size();
     }
 
-    public int getMax(String courseId) {
-        List<Integer> courseGrades = grades.getOrDefault(courseId, List.of());
-        if (courseGrades.isEmpty()) return -1;
-        return Collections.max(courseGrades);
+    public int getMaxScore(String courseCode) {
+        List<Integer> scores = courseScores.get(courseCode);
+        if (scores == null || scores.isEmpty()) return -1;
+        int max = -1;
+        for (int s : scores) {
+            if (s > max) max = s;
+        }
+        return max;
     }
 
-    public void printSortedReport() {
-        // 使用 TreeMap 自動依 Key (課號) 排序
-        Map<String, List<Integer>> sortedMap = new TreeMap<>(grades);
-        
-        System.out.println("=== 課程成績統計報告 ===");
-        for (Map.Entry<String, List<Integer>> entry : sortedMap.entrySet()) {
-            String course = entry.getKey();
-            System.out.printf("課號: %s | 成績清單: %s | 最高分: %d | 平均: %.2f%n", 
-                course, entry.getValue(), getMax(course), getAverage(course));
+    public void printReport() {
+        List<String> courses = new ArrayList<>(courseScores.keySet());
+        Collections.sort(courses);
+        for (String c : courses) {
+            System.out.printf("Course: %s | Avg: %.2f | Max: %d | Count: %d\n",
+                    c, getAverage(c), getMaxScore(c), courseScores.get(c).size());
         }
     }
 
     public static void main(String[] args) {
         CourseGradeMap report = new CourseGradeMap();
-        report.addGrade("CS101", 85);
-        report.addGrade("CS101", 92);
-        report.addGrade("MA202", 78);
-        report.addGrade("CS101", 88);
-        report.addGrade("MA202", 95);
-        report.addGrade("IM303", 100);
-
-        report.printSortedReport();
+        report.addScore("CS101", 85);
+        report.addScore("CS101", 95);
+        report.addScore("EE202", 70);
+        report.addScore("EE202", 60);
+        report.addScore("EE202", 80);
+        
+        report.printReport();
     }
 }

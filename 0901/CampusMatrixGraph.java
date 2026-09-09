@@ -6,54 +6,55 @@ public class CampusMatrixGraph {
     private final boolean[][] edges;
 
     public CampusMatrixGraph(List<String> locations) {
+        if (locations == null || locations.isEmpty()) throw new IllegalArgumentException();
         this.locations = List.copyOf(locations);
-        int n = locations.size();
-        this.edges = new boolean[n][n];
+        this.edges = new boolean[locations.size()][locations.size()];
     }
 
-    private int indexOf(String location) {
-        int idx = locations.indexOf(location);
-        if (idx < 0) throw new IllegalArgumentException("Unknown location: " + location);
+    private int getIndex(String loc) {
+        int idx = locations.indexOf(loc);
+        if (idx == -1) throw new IllegalArgumentException("Location not found");
         return idx;
     }
 
     public void addEdge(String loc1, String loc2) {
-        int u = indexOf(loc1);
-        int v = indexOf(loc2);
-        edges[u][v] = true;
-        edges[v][u] = true;
+        int i = getIndex(loc1);
+        int j = getIndex(loc2);
+        if (i != j) {
+            edges[i][j] = true;
+            edges[j][i] = true;
+        }
     }
 
     public void removeEdge(String loc1, String loc2) {
-        int u = indexOf(loc1);
-        int v = indexOf(loc2);
-        edges[u][v] = false;
-        edges[v][u] = false;
+        int i = getIndex(loc1);
+        int j = getIndex(loc2);
+        edges[i][j] = false;
+        edges[j][i] = false;
     }
 
-    public int degree(String location) {
+    public int getDegree(String loc) {
+        int i = getIndex(loc);
         int count = 0;
-        int row = indexOf(location);
-        for (boolean hasEdge : edges[row]) {
-            if (hasEdge) count++;
+        for (boolean e : edges[i]) {
+            if (e) count++;
         }
         return count;
     }
 
-    public List<String> neighbors(String location) {
-        List<String> result = new ArrayList<>();
-        int row = indexOf(location);
-        for (int i = 0; i < locations.size(); i++) {
-            if (edges[row][i]) result.add(locations.get(i));
+    public List<String> getNeighbors(String loc) {
+        int i = getIndex(loc);
+        List<String> neighbors = new ArrayList<>();
+        for (int j = 0; j < locations.size(); j++) {
+            if (edges[i][j]) neighbors.add(locations.get(j));
         }
-        return result;
+        return neighbors;
     }
 
-    public int edgeCount() {
+    public int getEdgeCount() {
         int sum = 0;
-        // Matrix 中，(i, j) 和 (j, i) 都是 true，所以算總度數再除以 2
-        for (int i = 0; i < locations.size(); i++) {
-            for (int j = 0; j < locations.size(); j++) {
+        for (int i = 0; i < edges.length; i++) {
+            for (int j = 0; j < edges[i].length; j++) {
                 if (edges[i][j]) sum++;
             }
         }
@@ -61,19 +62,19 @@ public class CampusMatrixGraph {
     }
 
     public static void main(String[] args) {
-        List<String> campus = List.of("Library", "Cafeteria", "Dorm", "Gym");
-        CampusMatrixGraph graph = new CampusMatrixGraph(campus);
+        CampusMatrixGraph campus = new CampusMatrixGraph(List.of("Gate", "Lib", "Dorm", "Gym"));
+        campus.addEdge("Gate", "Lib");
+        campus.addEdge("Lib", "Dorm");
+        campus.addEdge("Dorm", "Gym");
+        campus.addEdge("Gate", "Gym");
         
-        graph.addEdge("Library", "Cafeteria");
-        graph.addEdge("Cafeteria", "Dorm");
-        graph.addEdge("Cafeteria", "Gym");
-        graph.addEdge("Library", "Gym"); // 重複新增測試應使用 Set 或無視，這裡 boolean 覆蓋無妨
+        campus.addEdge("Gate", "Lib"); 
         
-        System.out.println("Library degree: " + graph.degree("Library"));
-        System.out.println("Cafeteria neighbors: " + graph.neighbors("Cafeteria"));
-        System.out.println("Total edge count: " + graph.edgeCount());
+        System.out.println("Total Edges: " + campus.getEdgeCount());
+        System.out.println("Lib Degree: " + campus.getDegree("Lib"));
+        System.out.println("Gate Neighbors: " + campus.getNeighbors("Gate"));
         
-        graph.removeEdge("Library", "Gym");
-        System.out.println("After removing Library-Gym, total edge count: " + graph.edgeCount());
+        campus.removeEdge("Dorm", "Gym");
+        System.out.println("Total Edges after removal: " + campus.getEdgeCount());
     }
 }

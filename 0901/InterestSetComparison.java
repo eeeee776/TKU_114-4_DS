@@ -1,44 +1,49 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class InterestSetComparison {
-    
-    // 聯集 (Union)
-    public static Set<String> union(Set<String> s1, Set<String> s2) {
-        Set<String> result = new HashSet<>(s1);
-        result.addAll(s2);
+    public static Set<String> getUnion(Set<String> set1, Set<String> set2) {
+        Set<String> result = new HashSet<>(set1);
+        result.addAll(set2);
         return result;
     }
 
-    // 交集 (Intersection)
-    public static Set<String> intersection(Set<String> s1, Set<String> s2) {
-        Set<String> result = new HashSet<>(s1);
-        result.retainAll(s2);
+    public static Set<String> getIntersection(Set<String> set1, Set<String> set2) {
+        Set<String> result = new HashSet<>(set1);
+        result.retainAll(set2);
         return result;
     }
 
-    // 只有 s1 有的 (First-only / Difference)
-    public static Set<String> firstOnly(Set<String> s1, Set<String> s2) {
-        Set<String> result = new HashSet<>(s1);
-        result.removeAll(s2);
+    public static Set<String> getFirstOnly(Set<String> set1, Set<String> set2) {
+        Set<String> result = new HashSet<>(set1);
+        result.removeAll(set2);
         return result;
     }
 
-    // 只有 s2 有的 (Second-only / Difference)
-    public static Set<String> secondOnly(Set<String> s1, Set<String> s2) {
-        return firstOnly(s2, s1);
+    public static Set<String> getSecondOnly(Set<String> set1, Set<String> set2) {
+        Set<String> result = new HashSet<>(set2);
+        result.removeAll(set1);
+        return result;
+    }
+
+    private static List<String> sorted(Set<String> set) {
+        List<String> list = new ArrayList<>(set);
+        Collections.sort(list);
+        return list;
     }
 
     public static void main(String[] args) {
-        Set<String> alice = Set.of("Reading", "Coding", "Hiking", "Music");
-        Set<String> bob = Set.of("Coding", "Gaming", "Music", "Cooking");
+        Set<String> amy = Set.of("Music", "Art", "Sports", "Reading");
+        Set<String> ben = Set.of("Gaming", "Art", "Reading", "Travel");
 
-        System.out.println("Alice's interests: " + alice);
-        System.out.println("Bob's interests: " + bob);
-        System.out.println("-------------------------");
-        System.out.println("Union (綜合興趣): " + union(alice, bob));
-        System.out.println("Intersection (共同興趣): " + intersection(alice, bob));
-        System.out.println("Only Alice likes: " + firstOnly(alice, bob));
-        System.out.println("Only Bob likes: " + secondOnly(alice, bob));
+        System.out.println("Amy: " + sorted(amy));
+        System.out.println("Ben: " + sorted(ben));
+        System.out.println("Union: " + sorted(getUnion(amy, ben)));
+        System.out.println("Intersection: " + sorted(getIntersection(amy, ben)));
+        System.out.println("Only Amy: " + sorted(getFirstOnly(amy, ben)));
+        System.out.println("Only Ben: " + sorted(getSecondOnly(amy, ben)));
     }
 }

@@ -1,64 +1,71 @@
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class SocialNetworkGraph {
-    private final Map<String, Set<String>> network = new HashMap<>();
+    private final Map<String, Set<String>> network = new LinkedHashMap<>();
 
-    public void addUser(String user) {
-        network.putIfAbsent(user, new HashSet<>());
+    public boolean addUser(String user) {
+        if (user == null || user.isBlank()) return false;
+        return network.putIfAbsent(user, new LinkedHashSet<>()) == null;
     }
 
-    public void addFriend(String user1, String user2) {
-        if (!network.containsKey(user1) || !network.containsKey(user2) || user1.equals(user2)) return;
-        network.get(user1).add(user2);
-        network.get(user2).add(user1);
+    public boolean addFriend(String user1, String user2) {
+        if (!network.containsKey(user1) || !network.containsKey(user2) || user1.equals(user2)) return false;
+        boolean added1 = network.get(user1).add(user2);
+        boolean added2 = network.get(user2).add(user1);
+        return added1 && added2;
     }
 
-    public void unfriend(String user1, String user2) {
-        if (!network.containsKey(user1) || !network.containsKey(user2)) return;
-        network.get(user1).remove(user2);
-        network.get(user2).remove(user1);
+    public boolean removeFriend(String user1, String user2) {
+        if (!network.containsKey(user1) || !network.containsKey(user2)) return false;
+        boolean rem1 = network.get(user1).remove(user2);
+        boolean rem2 = network.get(user2).remove(user1);
+        return rem1 && rem2;
     }
 
-    public Set<String> getFriends(String user) {
-        return network.getOrDefault(user, Set.of());
+    public List<String> getMutualFriends(String user1, String user2) {
+        if (!network.containsKey(user1) || !network.containsKey(user2)) return new ArrayList<>();
+        Set<String> mutual = new LinkedHashSet<>(network.get(user1));
+        mutual.retainAll(network.get(user2));
+        List<String> result = new ArrayList<>(mutual);
+        Collections.sort(result);
+        return result;
     }
 
-    public Set<String> getMutualFriends(String user1, String user2) {
-        Set<String> mutual = new HashSet<>(getFriends(user1));
-        mutual.retainAll(getFriends(user2));
-        return mutual;
-    }
-
-    public Set<String> getIsolatedUsers() {
-        Set<String> isolated = new HashSet<>();
+    public List<String> getIsolatedUsers() {
+        List<String> isolated = new ArrayList<>();
         for (Map.Entry<String, Set<String>> entry : network.entrySet()) {
             if (entry.getValue().isEmpty()) {
                 isolated.add(entry.getKey());
             }
         }
+        Collections.sort(isolated);
         return isolated;
     }
 
     public static void main(String[] args) {
-        SocialNetworkGraph sns = new SocialNetworkGraph();
-        for (String u : new String[]{"Alice", "Bob", "Charlie", "David", "Eve"}) {
-            sns.addUser(u);
-        }
+        SocialNetworkGraph sn = new SocialNetworkGraph();
+        sn.addUser("Amy");
+        sn.addUser("Ben");
+        sn.addUser("Cara");
+        sn.addUser("Dan");
+        sn.addUser("Eve");
 
-        sns.addFriend("Alice", "Bob");
-        sns.addFriend("Alice", "Charlie");
-        sns.addFriend("Bob", "Charlie");
-        sns.addFriend("David", "Bob");
-        
-        // Eve 沒朋友
-        System.out.println("Bob's friends: " + sns.getFriends("Bob"));
-        System.out.println("Alice & David mutual friends: " + sns.getMutualFriends("Alice", "David"));
-        System.out.println("Isolated users: " + sns.getIsolatedUsers());
-        
-        sns.unfriend("Alice", "Bob");
-        System.out.println("Bob's friends after unfriending Alice: " + sns.getFriends("Bob"));
+        sn.addFriend("Amy", "Ben");
+        sn.addFriend("Amy", "Cara");
+        sn.addFriend("Ben", "Cara");
+        sn.addFriend("Cara", "Dan");
+
+        System.out.println("Mutual of Amy & Cara: " + sn.getMutualFriends("Amy", "Cara"));
+        System.out.println("Mutual of Ben & Dan: " + sn.getMutualFriends("Ben", "Dan"));
+        System.out.println("Isolated Users: " + sn.getIsolatedUsers());
+
+        sn.removeFriend("Amy", "Ben");
+        System.out.println("Mutual of Amy & Cara after unfriend: " + sn.getMutualFriends("Amy", "Cara"));
     }
 }

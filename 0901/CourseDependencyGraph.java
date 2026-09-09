@@ -1,64 +1,72 @@
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CourseDependencyGraph {
-    // 紀錄 A -> B，表示 A 是 B 的先修課。Key 是一門課，Value 是它能解鎖的後續課程 (Outgoing)
-    private final Map<String, Set<String>> subsequentCourses = new HashMap<>();
+    private final Map<String, List<String>> prerequisites = new LinkedHashMap<>();
 
     public void addCourse(String course) {
-        subsequentCourses.putIfAbsent(course, new HashSet<>());
-    }
-
-    // preReq -> course (例如 計算機概論 -> 資料結構)
-    public void addDependency(String preReq, String course) {
-        if (!subsequentCourses.containsKey(preReq) || !subsequentCourses.containsKey(course)) {
-            throw new IllegalArgumentException("Course must be added first");
+        if (course != null && !course.isBlank()) {
+            prerequisites.putIfAbsent(course, new ArrayList<>());
         }
-        subsequentCourses.get(preReq).add(course);
     }
 
-    // 列出某門課的後續課程 (Out-degree mapping)
-    public Set<String> getSubsequentCourses(String course) {
-        return subsequentCourses.getOrDefault(course, Set.of());
+    public boolean addDependency(String preReq, String course) {
+        if (!prerequisites.containsKey(preReq) || !prerequisites.containsKey(course)) return false;
+        if (preReq.equals(course)) return false;
+        List<String> reqs = prerequisites.get(course);
+        if (!reqs.contains(preReq)) {
+            reqs.add(preReq);
+            return true;
+        }
+        return false;
     }
 
-    // 列出某門課的先修課程 (找出所有指向該 course 的節點)
-    public Set<String> getPrerequisites(String course) {
-        Set<String> prereqs = new HashSet<>();
-        for (Map.Entry<String, Set<String>> entry : subsequentCourses.entrySet()) {
+    public List<String> getPrerequisites(String course) {
+        if (!prerequisites.containsKey(course)) return new ArrayList<>();
+        List<String> list = new ArrayList<>(prerequisites.get(course));
+        Collections.sort(list);
+        return list;
+    }
+
+    public List<String> getNextCourses(String course) {
+        if (!prerequisites.containsKey(course)) return new ArrayList<>();
+        List<String> next = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : prerequisites.entrySet()) {
             if (entry.getValue().contains(course)) {
-                prereqs.add(entry.getKey());
+                next.add(entry.getKey());
             }
         }
-        return prereqs;
+        Collections.sort(next);
+        return next;
     }
 
-    public int inDegree(String course) {
+    public int getInDegree(String course) {
         return getPrerequisites(course).size();
     }
 
-    public int outDegree(String course) {
-        return getSubsequentCourses(course).size();
+    public int getOutDegree(String course) {
+        return getNextCourses(course).size();
     }
 
     public static void main(String[] args) {
         CourseDependencyGraph graph = new CourseDependencyGraph();
-        for (String c : new String[]{"CS101", "CS201", "CS202", "CS301", "MA101"}) {
-            graph.addCourse(c);
-        }
+        graph.addCourse("CS101");
+        graph.addCourse("CS102");
+        graph.addCourse("CS201");
+        graph.addCourse("CS202");
 
+        graph.addDependency("CS101", "CS102");
         graph.addDependency("CS101", "CS201");
-        graph.addDependency("CS101", "CS202");
-        graph.addDependency("MA101", "CS202");
-        graph.addDependency("CS201", "CS301");
-        graph.addDependency("CS202", "CS301");
+        graph.addDependency("CS102", "CS202");
+        graph.addDependency("CS201", "CS202");
 
-        System.out.println("Prerequisites of CS202: " + graph.getPrerequisites("CS202")); // [CS101, MA101]
-        System.out.println("Subsequent to CS101: " + graph.getSubsequentCourses("CS101")); // [CS201, CS202]
-        
-        System.out.println("CS301 In-degree: " + graph.inDegree("CS301")); // 2
-        System.out.println("MA101 Out-degree: " + graph.outDegree("MA101")); // 1
+        System.out.println("Prerequisites for CS202: " + graph.getPrerequisites("CS202"));
+        System.out.println("Next courses after CS101: " + graph.getNextCourses("CS101"));
+        System.out.println("CS101 In-Degree: " + graph.getInDegree("CS101"));
+        System.out.println("CS101 Out-Degree: " + graph.getOutDegree("CS101"));
+        System.out.println("CS202 In-Degree: " + graph.getInDegree("CS202"));
     }
 }

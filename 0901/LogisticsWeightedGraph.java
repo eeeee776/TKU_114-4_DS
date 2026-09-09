@@ -1,36 +1,31 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class LogisticsWeightedGraph {
     public record Route(String destination, int cost) {}
 
-    private final Map<String, List<Route>> network = new HashMap<>();
+    private final Map<String, List<Route>> network = new LinkedHashMap<>();
 
     public void addLocation(String location) {
-        if (location == null || location.isBlank()) return;
-        network.putIfAbsent(location, new ArrayList<>());
+        if (location != null && !location.isBlank()) {
+            network.putIfAbsent(location, new ArrayList<>());
+        }
     }
 
-    public void addOrUpdateRoute(String from, String to, int cost) {
-        if (!network.containsKey(from) || !network.containsKey(to)) {
-            throw new IllegalArgumentException("地點不存在: " + from + " 或 " + to);
-        }
-        if (cost < 0) {
-            throw new IllegalArgumentException("物流成本不可為負數: " + cost);
-        }
-
+    public boolean addOrUpdateRoute(String from, String to, int cost) {
+        if (cost < 0 || !network.containsKey(from) || !network.containsKey(to)) return false;
         List<Route> routes = network.get(from);
-        // 檢查是否已有該路線，有則更新
+        
         for (int i = 0; i < routes.size(); i++) {
             if (routes.get(i).destination().equals(to)) {
                 routes.set(i, new Route(to, cost));
-                return;
+                return true;
             }
         }
-        // 沒有則新增
         routes.add(new Route(to, cost));
+        return true;
     }
 
     public boolean removeRoute(String from, String to) {
@@ -50,34 +45,28 @@ public class LogisticsWeightedGraph {
         for (Route r : network.get(from)) {
             if (r.destination().equals(to)) return r.cost();
         }
-        return -1; // -1 代表無此路徑
+        return -1;
     }
-    
-    public void printRoutesFrom(String location) {
-        System.out.println("從 " + location + " 出發的物流路線: " + network.getOrDefault(location, List.of()));
+
+    public List<Route> getOutgoingRoutes(String location) {
+        return new ArrayList<>(network.getOrDefault(location, new ArrayList<>()));
     }
 
     public static void main(String[] args) {
         LogisticsWeightedGraph logistics = new LogisticsWeightedGraph();
-        logistics.addLocation("Taipei");
-        logistics.addLocation("Taichung");
-        logistics.addLocation("Kaohsiung");
+        logistics.addLocation("Hub_A");
+        logistics.addLocation("Hub_B");
+        logistics.addLocation("Hub_C");
 
-        // 新增路線
-        logistics.addOrUpdateRoute("Taipei", "Taichung", 300);
-        logistics.addOrUpdateRoute("Taichung", "Kaohsiung", 400);
-        
-        // 測試更新
-        logistics.addOrUpdateRoute("Taipei", "Taichung", 250); 
-        
-        logistics.printRoutesFrom("Taipei");
-        System.out.println("Taichung -> Kaohsiung 成本: " + logistics.getCost("Taichung", "Kaohsiung"));
+        System.out.println("Add A->B (50): " + logistics.addOrUpdateRoute("Hub_A", "Hub_B", 50));
+        System.out.println("Add A->C (100): " + logistics.addOrUpdateRoute("Hub_A", "Hub_C", 100));
+        System.out.println("Add A->B (-10) [Invalid]: " + logistics.addOrUpdateRoute("Hub_A", "Hub_B", -10));
+        System.out.println("Update A->C (80): " + logistics.addOrUpdateRoute("Hub_A", "Hub_C", 80));
 
-        // 測試防呆 (會拋出 Exception)
-        try {
-            logistics.addOrUpdateRoute("Taipei", "Kaohsiung", -50);
-        } catch (IllegalArgumentException e) {
-            System.out.println("預期捕捉到錯誤: " + e.getMessage());
-        }
+        System.out.println("Cost A->C: " + logistics.getCost("Hub_A", "Hub_C"));
+        System.out.println("Routes from A: " + logistics.getOutgoingRoutes("Hub_A"));
+
+        System.out.println("Remove A->B: " + logistics.removeRoute("Hub_A", "Hub_B"));
+        System.out.println("Routes from A after removal: " + logistics.getOutgoingRoutes("Hub_A"));
     }
 }

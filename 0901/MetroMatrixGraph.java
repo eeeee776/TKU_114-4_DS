@@ -6,73 +6,73 @@ public class MetroMatrixGraph {
     private final boolean[][] edges;
 
     public MetroMatrixGraph(List<String> stations) {
+        if (stations == null || stations.isEmpty()) throw new IllegalArgumentException();
         this.stations = List.copyOf(stations);
-        int n = stations.size();
-        this.edges = new boolean[n][n];
+        this.edges = new boolean[stations.size()][stations.size()];
     }
 
-    private int indexOf(String station) {
+    private int getIndex(String station) {
         int idx = stations.indexOf(station);
-        if (idx < 0) throw new IllegalArgumentException("未知的車站: " + station);
+        if (idx == -1) throw new IllegalArgumentException();
         return idx;
     }
 
-    public void addRoute(String s1, String s2) {
-        int u = indexOf(s1);
-        int v = indexOf(s2);
-        edges[u][v] = true;
-        edges[v][u] = true;
+    public void addConnection(String s1, String s2) {
+        int i = getIndex(s1);
+        int j = getIndex(s2);
+        edges[i][j] = true;
+        edges[j][i] = true;
     }
 
     public List<String> getNeighbors(String station) {
-        List<String> result = new ArrayList<>();
-        int row = indexOf(station);
-        for (int i = 0; i < stations.size(); i++) {
-            if (edges[row][i]) result.add(stations.get(i));
+        int idx = getIndex(station);
+        List<String> neighbors = new ArrayList<>();
+        for (int j = 0; j < stations.size(); j++) {
+            if (edges[idx][j]) {
+                neighbors.add(stations.get(j));
+            }
         }
-        return result;
+        return neighbors;
     }
 
-    public int degree(String station) {
+    public int getDegree(String station) {
         return getNeighbors(station).size();
     }
 
-    public int edgeCount() {
-        int sum = 0;
-        for (int i = 0; i < stations.size(); i++) {
-            for (int j = 0; j < stations.size(); j++) {
-                if (edges[i][j]) sum++;
+    public int getTotalEdges() {
+        int count = 0;
+        for (int i = 0; i < edges.length; i++) {
+            for (int j = 0; j < edges[i].length; j++) {
+                if (edges[i][j]) count++;
             }
         }
-        return sum / 2; // 無向圖除以2
+        return count / 2;
     }
 
-    public void printMatrix() {
-        System.out.println("=== 捷運路線連線矩陣 ===");
-        System.out.print(String.format("%-8s", ""));
-        for (String s : stations) System.out.print(String.format("%-8s", s));
+    public void printMatrixReport() {
+        System.out.print("  ");
+        for (String s : stations) System.out.print(s + " ");
         System.out.println();
-
-        for (int i = 0; i < stations.size(); i++) {
-            System.out.print(String.format("%-8s", stations.get(i)));
-            for (int j = 0; j < stations.size(); j++) {
-                System.out.print(String.format("%-8s", edges[i][j] ? "1" : "0"));
+        for (int i = 0; i < edges.length; i++) {
+            System.out.print(stations.get(i) + " ");
+            for (int j = 0; j < edges[i].length; j++) {
+                System.out.print((edges[i][j] ? 1 : 0) + " ");
             }
             System.out.println();
         }
     }
 
     public static void main(String[] args) {
-        List<String> lines = List.of("Taipei", "Zhongshan", "Shuanglian", "Minquan");
-        MetroMatrixGraph metro = new MetroMatrixGraph(lines);
-        
-        metro.addRoute("Taipei", "Zhongshan");
-        metro.addRoute("Zhongshan", "Shuanglian");
-        metro.addRoute("Shuanglian", "Minquan");
+        MetroMatrixGraph metro = new MetroMatrixGraph(List.of("TPE", "ZSN", "BQA", "XMN"));
+        metro.addConnection("TPE", "ZSN");
+        metro.addConnection("ZSN", "BQA");
+        metro.addConnection("TPE", "XMN");
 
-        metro.printMatrix();
-        System.out.println("\nZhongshan 鄰站: " + metro.getNeighbors("Zhongshan"));
-        System.out.println("Zhongshan 的 degree: " + metro.degree("Zhongshan"));
-        System.out.println("總路線段數: " + metro.edgeCount());
+        System.out.println("TPE Neighbors: " + metro.getNeighbors("TPE"));
+        System.out.println("ZSN Degree: " + metro.getDegree("ZSN"));
+        System.out.println("Total Edges: " + metro.getTotalEdges());
+        
+        System.out.println("\nMatrix Report:");
+        metro.printMatrixReport();
     }
 }
