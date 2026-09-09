@@ -1,4 +1,6 @@
-package midterm_exam;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Q02_ServiceOrder {
     public static class LineItem {
         private final String name;
@@ -11,21 +13,32 @@ public class Q02_ServiceOrder {
             this.quantity = quantity;
         }
 
-        public String getName() { return name; }
-        public int getUnitPrice() { return unitPrice; }
-        public int getQuantity() { return quantity; }
-        public int subtotal() { return unitPrice * quantity; }
+        public String getName() {
+            return name;
+        }
+
+        public int getUnitPrice() {
+            return unitPrice;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public int subtotal() {
+            return unitPrice * quantity;
+        }
     }
 
     private final String orderId;
-    private final java.util.List<LineItem> items;
+    private final List<LineItem> items;
 
     public Q02_ServiceOrder(String orderId) {
         if (orderId == null || orderId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Order ID cannot be null or blank");
+            throw new IllegalArgumentException();
         }
         this.orderId = orderId;
-        this.items = new java.util.ArrayList<>();
+        this.items = new ArrayList<>();
     }
 
     public boolean addItem(String name, int unitPrice, int quantity) {
@@ -50,22 +63,21 @@ public class Q02_ServiceOrder {
 
     public String largestItemName() {
         if (items.isEmpty()) return "";
-        LineItem largest = items.get(0);
+        LineItem maxItem = items.get(0);
         for (int i = 1; i < items.size(); i++) {
-            if (items.get(i).subtotal() > largest.subtotal()) {
-                largest = items.get(i);
+            if (items.get(i).subtotal() > maxItem.subtotal()) {
+                maxItem = items.get(i);
             }
         }
-        return largest.getName();
+        return maxItem.getName();
     }
 
-    public java.util.List<String> itemSummaries() {
+    public List<String> itemSummaries() {
         // composition-check 8C21-R
-        java.util.List<String> summaries = new java.util.ArrayList<>();
+        List<String> summaries = new ArrayList<>();
         for (LineItem item : items) {
             summaries.add(item.getName() + ":" + item.subtotal());
         }
-        return java.util.Collections.unmodifiableList(summaries);
+        return summaries;
     }
-    
 }

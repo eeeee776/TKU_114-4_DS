@@ -1,58 +1,64 @@
-package midterm_exam;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class Q06_EnrollmentIndex {
-    private final java.util.Map<String, java.util.Set<String>> enrollmentMapR26 = new java.util.HashMap<>();
+    private final Map<String, Set<String>> enrollmentMapR26 = new HashMap<>();
 
     public boolean enroll(String courseCode, String studentId) {
-        if (courseCode == null || courseCode.trim().isEmpty() || studentId == null || studentId.trim().isEmpty()) {
+        if (courseCode == null || courseCode.isBlank() || studentId == null || studentId.isBlank()) {
             return false;
         }
-        enrollmentMapR26.putIfAbsent(courseCode, new java.util.HashSet<>());
+        enrollmentMapR26.putIfAbsent(courseCode, new HashSet<>());
         return enrollmentMapR26.get(courseCode).add(studentId);
     }
 
     public boolean drop(String courseCode, String studentId) {
-        if (courseCode == null || courseCode.trim().isEmpty() || studentId == null || studentId.trim().isEmpty()) {
+        if (courseCode == null || courseCode.isBlank() || studentId == null || studentId.isBlank()) {
             return false;
         }
-        java.util.Set<String> students = enrollmentMapR26.get(courseCode);
-        if (students != null) {
-            boolean removed = students.remove(studentId);
-            if (students.isEmpty()) {
-                enrollmentMapR26.remove(courseCode);
-            }
-            return removed;
+        Set<String> students = enrollmentMapR26.get(courseCode);
+        if (students == null) return false;
+        boolean removed = students.remove(studentId);
+        if (students.isEmpty()) {
+            enrollmentMapR26.remove(courseCode);
         }
-        return false;
+        return removed;
     }
 
     public int courseSize(String courseCode) {
-        java.util.Set<String> students = enrollmentMapR26.get(courseCode);
-        return students != null ? students.size() : 0;
+        Set<String> students = enrollmentMapR26.get(courseCode);
+        return students == null ? 0 : students.size();
     }
 
-    public java.util.List<String> studentsOf(String courseCode) {
-        java.util.Set<String> students = enrollmentMapR26.get(courseCode);
-        if (students == null) return new java.util.ArrayList<>();
-        java.util.List<String> list = new java.util.ArrayList<>(students);
-        java.util.Collections.sort(list);
-        return list;
+    public List<String> studentsOf(String courseCode) {
+        Set<String> students = enrollmentMapR26.get(courseCode);
+        if (students == null) return new ArrayList<>();
+        List<String> result = new ArrayList<>(students);
+        Collections.sort(result);
+        return result;
     }
 
-    public java.util.List<String> coursesOf(String studentId) {
-        java.util.List<String> courses = new java.util.ArrayList<>();
-        for (java.util.Map.Entry<String, java.util.Set<String>> entry : enrollmentMapR26.entrySet()) {
+    public List<String> coursesOf(String studentId) {
+        List<String> result = new ArrayList<>();
+        if (studentId == null || studentId.isBlank()) return result;
+        for (Map.Entry<String, Set<String>> entry : enrollmentMapR26.entrySet()) {
             if (entry.getValue().contains(studentId)) {
-                courses.add(entry.getKey());
+                result.add(entry.getKey());
             }
         }
-        java.util.Collections.sort(courses);
-        return courses;
+        Collections.sort(result);
+        return result;
     }
 
-    public java.util.Map<String, Integer> summary() {
-        java.util.Map<String, Integer> map = new java.util.TreeMap<>();
-        for (java.util.Map.Entry<String, java.util.Set<String>> entry : enrollmentMapR26.entrySet()) {
+    public Map<String, Integer> summary() {
+        Map<String, Integer> map = new TreeMap<>();
+        for (Map.Entry<String, Set<String>> entry : enrollmentMapR26.entrySet()) {
             map.put(entry.getKey(), entry.getValue().size());
         }
         return map;

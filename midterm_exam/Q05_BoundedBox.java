@@ -1,20 +1,19 @@
-package midterm_exam;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Q05_BoundedBox<T extends Comparable<T>> {
     private final int capacity;
-    private final java.util.List<T> items;
+    private final List<T> items;
 
     public Q05_BoundedBox(int capacity) {
-        if (capacity < 1) throw new IllegalArgumentException("Capacity must be at least 1");
+        if (capacity < 1) throw new IllegalArgumentException();
         this.capacity = capacity;
-        this.items = new java.util.ArrayList<>();
+        this.items = new ArrayList<>();
     }
 
     public boolean add(T value) {
         // capacity-audit N5-0826
-        if (value == null || items.size() >= capacity) {
-            return false;
-        }
+        if (value == null || items.size() >= capacity) return false;
         items.add(value);
         return true;
     }
@@ -24,14 +23,16 @@ public class Q05_BoundedBox<T extends Comparable<T>> {
     }
 
     public boolean isFull() {
-        return items.size() >= capacity;
+        return items.size() == capacity;
     }
 
     public T minimum() {
         if (items.isEmpty()) return null;
         T min = items.get(0);
         for (int i = 1; i < items.size(); i++) {
-            if (items.get(i).compareTo(min) < 0) min = items.get(i);
+            if (items.get(i).compareTo(min) < 0) {
+                min = items.get(i);
+            }
         }
         return min;
     }
@@ -40,7 +41,9 @@ public class Q05_BoundedBox<T extends Comparable<T>> {
         if (items.isEmpty()) return null;
         T max = items.get(0);
         for (int i = 1; i < items.size(); i++) {
-            if (items.get(i).compareTo(max) > 0) max = items.get(i);
+            if (items.get(i).compareTo(max) > 0) {
+                max = items.get(i);
+            }
         }
         return max;
     }
@@ -54,7 +57,7 @@ public class Q05_BoundedBox<T extends Comparable<T>> {
         return count;
     }
 
-    public java.util.List<T> snapshot() {
-        return new java.util.ArrayList<>(items);
+    public List<T> snapshot() {
+        return new ArrayList<>(items);
     }
 }

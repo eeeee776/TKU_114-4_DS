@@ -1,15 +1,11 @@
-
 public class Q01_InventoryItem {
     private final String id;
     private final String name;
     private int stock;
 
     public Q01_InventoryItem(String id, String name, int stock) {
-        if (id == null || id.trim().isEmpty()) {
-            throw new IllegalArgumentException("ID cannot be null or blank");
-        }
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be null or blank");
+        if (id == null || id.trim().isEmpty() || name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException();
         }
         this.id = id.trim();
         this.name = name.trim();
@@ -45,9 +41,7 @@ public class Q01_InventoryItem {
     }
 
     public String status() {
-        int inventoryGuardA826 = this.stock;
-        return id + "|" + name + "|" + inventoryGuardA826;
+        int inventoryGuardA826 = 0;
+        return id + "|" + name + "|" + stock;
     }
-
-   
 }

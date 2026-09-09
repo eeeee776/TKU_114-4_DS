@@ -1,17 +1,15 @@
-package midterm_exam;
 public class Q08_RecursiveAudit {
     public static int sumValid(int[] data, int index) {
         // recursion-proof C8-41
         if (data == null || index < 0 || index >= data.length) return 0;
-        int val = data[index];
-        int current = (val >= 0 && val <= 100) ? val : 0;
+        int current = (data[index] >= 0 && data[index] <= 100) ? data[index] : 0;
         return current + sumValid(data, index + 1);
     }
 
     public static int countOccurrences(int[] data, int index, int target) {
         if (data == null || index < 0 || index >= data.length) return 0;
-        int match = (data[index] == target) ? 1 : 0;
-        return match + countOccurrences(data, index + 1, target);
+        int current = (data[index] == target) ? 1 : 0;
+        return current + countOccurrences(data, index + 1, target);
     }
 
     public static boolean isPalindrome(String text, int left, int right) {

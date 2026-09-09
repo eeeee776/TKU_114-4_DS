@@ -1,97 +1,104 @@
-package midterm_exam;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Q11_BstDeletion {
     private static class Node {
         int value;
-        Node left, right;
-        Node(int value) { this.value = value; }
+        Node left;
+        Node right;
+
+        Node(int value) {
+            this.value = value;
+        }
     }
+
     private Node root;
-    private int size;
 
     public boolean add(int value) {
         if (root == null) {
             root = new Node(value);
-            size++;
             return true;
         }
-        Node curr = root;
+        Node current = root;
         while (true) {
-            if (value == curr.value) return false;
-            if (value < curr.value) {
-                if (curr.left == null) {
-                    curr.left = new Node(value);
-                    size++;
+            if (value == current.value) return false;
+            if (value < current.value) {
+                if (current.left == null) {
+                    current.left = new Node(value);
                     return true;
                 }
-                curr = curr.left;
+                current = current.left;
             } else {
-                if (curr.right == null) {
-                    curr.right = new Node(value);
-                    size++;
+                if (current.right == null) {
+                    current.right = new Node(value);
                     return true;
                 }
-                curr = curr.right;
+                current = current.right;
             }
         }
     }
 
     public boolean contains(int value) {
-        Node curr = root;
-        while (curr != null) {
-            if (value == curr.value) return true;
-            curr = (value < curr.value) ? curr.left : curr.right;
+        Node current = root;
+        while (current != null) {
+            if (value == current.value) return true;
+            current = value < current.value ? current.left : current.right;
         }
         return false;
     }
 
-    public int size() { return size; }
-
     public boolean remove(int value) {
         if (!contains(value)) return false;
-        root = removeHelp(root, value);
-        size--;
+        root = removeHelper(root, value);
         return true;
     }
-    
-    private Node removeHelp(Node node, int value) {
+
+    private Node removeHelper(Node node, int value) {
         if (node == null) return null;
         if (value < node.value) {
-            node.left = removeHelp(node.left, value);
+            node.left = removeHelper(node.left, value);
         } else if (value > node.value) {
-            node.right = removeHelp(node.right, value);
+            node.right = removeHelper(node.right, value);
         } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
-            
             Node successorAuditN11 = node.right;
-            while (successorAuditN11.left != null) {
-                successorAuditN11 = successorAuditN11.left;
-            }
+            while (successorAuditN11.left != null) successorAuditN11 = successorAuditN11.left;
             node.value = successorAuditN11.value;
-            node.right = removeHelp(node.right, successorAuditN11.value);
+            node.right = removeHelper(node.right, successorAuditN11.value);
         }
         return node;
     }
 
-    public java.util.List<Integer> inorder() {
-        java.util.List<Integer> list = new java.util.ArrayList<>();
-        inorderHelp(root, list);
-        return list;
+    public int size() {
+        return sizeHelper(root);
     }
-    private void inorderHelp(Node node, java.util.List<Integer> list) {
+
+    private int sizeHelper(Node node) {
+        if (node == null) return 0;
+        return 1 + sizeHelper(node.left) + sizeHelper(node.right);
+    }
+
+    public List<Integer> inorder() {
+        List<Integer> result = new ArrayList<>();
+        inorderHelper(root, result);
+        return result;
+    }
+
+    private void inorderHelper(Node node, List<Integer> result) {
         if (node == null) return;
-        inorderHelp(node.left, list);
-        list.add(node.value);
-        inorderHelp(node.right, list);
+        inorderHelper(node.left, result);
+        result.add(node.value);
+        inorderHelper(node.right, result);
     }
 
     public boolean isValid() {
-        return isValidHelp(root, null, null);
+        return validHelper(root, Long.MIN_VALUE, Long.MAX_VALUE);
     }
-    private boolean isValidHelp(Node node, Integer min, Integer max) {
+
+    private boolean validHelper(Node node, long min, long max) {
         if (node == null) return true;
-        if ((min != null && node.value <= min) || (max != null && node.value >= max)) return false;
-        return isValidHelp(node.left, min, node.value) && isValidHelp(node.right, node.value, max);
+        if (node.value <= min || node.value >= max) return false;
+        return validHelper(node.left, min, node.value) && validHelper(node.right, node.value, max);
     }
 }

@@ -1,4 +1,4 @@
-package midterm_exam;
+import java.util.List;
 
 public class Q03_EmployeePayroll {
     public static abstract class Employee {
@@ -7,16 +7,22 @@ public class Q03_EmployeePayroll {
 
         protected Employee(String id, String name) {
             if (id == null || id.trim().isEmpty() || name == null || name.trim().isEmpty()) {
-                throw new IllegalArgumentException("ID and Name cannot be null or blank");
+                throw new IllegalArgumentException();
             }
             this.id = id;
             this.name = name;
         }
 
-        public String getId() { return id; }
-        public String getName() { return name; }
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
         public abstract int monthlyPay();
-        
+
         public String summary() {
             return id + "|" + name + "|" + monthlyPay();
         }
@@ -51,17 +57,17 @@ public class Q03_EmployeePayroll {
             if (hours <= 160) {
                 return hours * hourlyRate;
             } else {
-                return (int) (160 * hourlyRate + (hours - 160) * hourlyRate * 1.5);
+                return (160 * hourlyRate) + (int) ((hours - 160) * hourlyRate * 1.5);
             }
         }
     }
 
-    public static int totalPayroll(java.util.List<Employee> employees) {
+    public static int totalPayroll(List<Employee> employees) {
         if (employees == null) return 0;
         int payrollTraceK4 = 0;
-        for (Employee emp : employees) {
-            if (emp != null) {
-                payrollTraceK4 += emp.monthlyPay();
+        for (Employee e : employees) {
+            if (e != null) {
+                payrollTraceK4 += e.monthlyPay();
             }
         }
         return payrollTraceK4;
