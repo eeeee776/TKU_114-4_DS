@@ -1,61 +1,69 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class ColNode {
+class TestNode {
     String value;
-    ColNode left, right;
-    ColNode(String value) { this.value = value; }
+    TestNode left;
+    TestNode right;
+
+    TestNode(String value) {
+        this.value = value;
+    }
 }
 
 public class TraversalTestReport {
-
-    private static List<String> preorder(ColNode node) {
-        List<String> result = new ArrayList<>();
-        preorderHelper(node, result);
-        return result;
+    static List<String> preorder(TestNode node) {
+        List<String> list = new ArrayList<>();
+        preHelper(node, list);
+        return list;
     }
 
-    private static void preorderHelper(ColNode node, List<String> res) {
+    private static void preHelper(TestNode node, List<String> list) {
         if (node == null) return;
-        res.add(node.value);
-        preorderHelper(node.left, res);
-        preorderHelper(node.right, res);
+        list.add(node.value);
+        preHelper(node.left, list);
+        preHelper(node.right, list);
     }
 
-    // 建立 Left-Skewed Tree: A -> B -> C (只有左邊)
-    private static ColNode buildLeftSkewed() {
-        ColNode root = new ColNode("A");
-        root.left = new ColNode("B");
-        root.left.left = new ColNode("C");
-        return root;
-    }
-
-    private static void runTest(String testName, ColNode root, List<String> expectedPreorder) {
-        System.out.println("=== 測試案例: " + testName + " ===");
-        List<String> actual = preorder(root);
-        boolean isPass = actual.equals(expectedPreorder);
-        
-        System.out.println("預期 Preorder: " + expectedPreorder);
-        System.out.println("實際 Preorder: " + actual);
-        System.out.println("結果: " + (isPass ? "PASS" : "FAIL"));
+    static void checkResult(String name, List<String> expected, List<String> actual) {
+        boolean match = expected.equals(actual);
+        System.out.println(name);
+        System.out.println(expected);
+        System.out.println(actual);
+        System.out.println(match);
         System.out.println();
     }
 
     public static void main(String[] args) {
-        // 1. 測試 Empty Tree
-        runTest("Empty Tree", null, List.of());
-        
-        // 2. 測試 Single-Node Tree
-        runTest("Single-Node Tree", new ColNode("Root"), List.of("Root"));
-        
-        // 3. 測試 Left-Skewed Tree
-        runTest("Left-Skewed Tree", buildLeftSkewed(), List.of("A", "B", "C"));
-        
-        // 4. 一般樹 (A(B(D),C))
-        ColNode normal = new ColNode("A");
-        normal.left = new ColNode("B"); 
-        normal.right = new ColNode("C");
-        normal.left.left = new ColNode("D");
-        runTest("Irregular Tree", normal, List.of("A", "B", "D", "C"));
+        checkResult("Empty", new ArrayList<>(), preorder(null));
+
+        TestNode single = new TestNode("A");
+        checkResult("Single", List.of("A"), preorder(single));
+
+        TestNode onlyLeft = new TestNode("A");
+        onlyLeft.left = new TestNode("B");
+        onlyLeft.left.left = new TestNode("C");
+        checkResult("OnlyLeft", List.of("A", "B", "C"), preorder(onlyLeft));
+
+        TestNode onlyRight = new TestNode("A");
+        onlyRight.right = new TestNode("B");
+        onlyRight.right.right = new TestNode("C");
+        checkResult("OnlyRight", List.of("A", "B", "C"), preorder(onlyRight));
+
+        TestNode complete = new TestNode("A");
+        complete.left = new TestNode("B");
+        complete.right = new TestNode("C");
+        complete.left.left = new TestNode("D");
+        complete.left.right = new TestNode("E");
+        complete.right.left = new TestNode("F");
+        complete.right.right = new TestNode("G");
+        checkResult("Complete", List.of("A", "B", "D", "E", "C", "F", "G"), preorder(complete));
+
+        TestNode irregular = new TestNode("A");
+        irregular.left = new TestNode("B");
+        irregular.left.right = new TestNode("C");
+        irregular.right = new TestNode("D");
+        irregular.right.left = new TestNode("E");
+        checkResult("Irregular", List.of("A", "B", "C", "D", "E"), preorder(irregular));
     }
 }

@@ -9,11 +9,9 @@ class MenuNode {
 }
 
 public class MenuTreeSearch {
-
     static boolean contains(MenuNode node, String target) {
         if (node == null || target == null) return false;
         if (node.name.equals(target)) return true;
-        
         return contains(node.left, target) || contains(node.right, target);
     }
 
@@ -21,11 +19,9 @@ public class MenuTreeSearch {
         if (node == null || target == null) return -1;
         if (node.name.equals(target)) return currentDepth;
         
-        // 找左邊
         int leftDepth = findDepth(node.left, target, currentDepth + 1);
         if (leftDepth != -1) return leftDepth;
         
-        // 如果左邊沒有，再找右邊
         return findDepth(node.right, target, currentDepth + 1);
     }
 
@@ -35,34 +31,32 @@ public class MenuTreeSearch {
         return countLeaves(node.left) + countLeaves(node.right);
     }
 
-    static void preorder(MenuNode node) {
+    static void preorderDisplay(MenuNode node) {
         if (node == null) return;
         System.out.print(node.name + " ");
-        preorder(node.left);
-        preorder(node.right);
+        preorderDisplay(node.left);
+        preorderDisplay(node.right);
     }
 
     public static void main(String[] args) {
-        MenuNode root = new MenuNode("Settings");
-        root.left = new MenuNode("Display");
-        root.right = new MenuNode("Network");
-        root.left.left = new MenuNode("Brightness");
-        root.left.right = new MenuNode("Resolution");
-        root.right.left = new MenuNode("WiFi");
+        MenuNode root = new MenuNode("Home");
+        root.left = new MenuNode("Products");
+        root.right = new MenuNode("About");
+        root.left.left = new MenuNode("Laptops");
+        root.left.right = new MenuNode("Phones");
+        root.right.right = new MenuNode("Contact");
 
         System.out.print("Preorder Display: ");
-        preorder(root);
-        System.out.println("\n");
+        preorderDisplay(root);
+        System.out.println();
 
-        System.out.println("Contains 'WiFi': " + contains(root, "WiFi"));
-        System.out.println("Contains 'Bluetooth': " + contains(root, "Bluetooth"));
-        System.out.println();
-        
-        System.out.println("Depth of 'Settings' (Root): " + findDepth(root, "Settings", 0));
-        System.out.println("Depth of 'Resolution': " + findDepth(root, "Resolution", 0));
-        System.out.println("Depth of 'Bluetooth' (Not exist): " + findDepth(root, "Bluetooth", 0));
-        System.out.println();
-        
+        System.out.println("Contains 'Phones': " + contains(root, "Phones"));
+        System.out.println("Contains 'Careers': " + contains(root, "Careers"));
+
+        System.out.println("Depth of 'Home': " + findDepth(root, "Home", 0));
+        System.out.println("Depth of 'Contact': " + findDepth(root, "Contact", 0));
+        System.out.println("Depth of 'Careers': " + findDepth(root, "Careers", 0));
+
         System.out.println("Total Leaves: " + countLeaves(root));
     }
 }

@@ -12,22 +12,21 @@ class LevelNode {
 }
 
 public class LevelOrderByLine {
-
     static void printByLevel(LevelNode root) {
         if (root == null) {
-            System.out.println("Empty Tree");
+            System.out.println("Tree is empty");
             return;
         }
 
         Queue<LevelNode> queue = new ArrayDeque<>();
         queue.offer(root);
-        int levelNumber = 0;
+        int level = 0;
 
         while (!queue.isEmpty()) {
-            int currentLevelSize = queue.size();
-            System.out.print("Level " + levelNumber + " (Count: " + currentLevelSize + ") -> ");
+            int levelCount = queue.size();
+            System.out.print("Level " + level + " (" + levelCount + " nodes): ");
             
-            for (int i = 0; i < currentLevelSize; i++) {
+            for (int i = 0; i < levelCount; i++) {
                 LevelNode current = queue.poll();
                 System.out.print(current.value + " ");
                 
@@ -35,22 +34,22 @@ public class LevelOrderByLine {
                 if (current.right != null) queue.offer(current.right);
             }
             System.out.println();
-            levelNumber++;
+            level++;
         }
     }
 
     public static void main(String[] args) {
-        LevelNode root = new LevelNode("1");
-        root.left = new LevelNode("2");
-        root.right = new LevelNode("3");
-        root.left.left = new LevelNode("4");
-        root.left.right = new LevelNode("5");
-        root.right.right = new LevelNode("6");
-
-        System.out.println("--- 正常樹測試 ---");
-        printByLevel(root);
-
-        System.out.println("\n--- Empty 測試 ---");
+        System.out.println("--- Empty Tree ---");
         printByLevel(null);
+        
+        System.out.println("\n--- Populated Tree ---");
+        LevelNode root = new LevelNode("A");
+        root.left = new LevelNode("B");
+        root.right = new LevelNode("C");
+        root.left.left = new LevelNode("D");
+        root.right.right = new LevelNode("E");
+        root.right.right.left = new LevelNode("F");
+        
+        printByLevel(root);
     }
 }

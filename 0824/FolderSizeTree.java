@@ -1,48 +1,59 @@
 class FolderNode {
     String name;
-    int ownSize; // 該層目錄自己的檔案大小
-    FolderNode left, right;
-    
+    int ownSize;
+    FolderNode left;
+    FolderNode right;
+
     FolderNode(String name, int ownSize) {
         this.name = name;
         this.ownSize = ownSize;
     }
 }
 
+class FolderResult {
+    String name;
+    int size;
+
+    FolderResult(String name, int size) {
+        this.name = name;
+        this.size = size;
+    }
+}
+
 public class FolderSizeTree {
-    
-    // 用於記錄分析結果的類別級變數
-    static int maxSubtreeSize = -1;
-    static String maxSubtreeName = "";
-    
-    public static int calculateSize(FolderNode node) {
+    static FolderResult maxSubtree = new FolderResult("", -1);
+
+    static int calculateSize(FolderNode node) {
         if (node == null) return 0;
         
-        // Postorder: 取得左右子目錄大小
         int leftSize = calculateSize(node.left);
         int rightSize = calculateSize(node.right);
-        
-        // Root: 加上自己的大小
         int totalSize = node.ownSize + leftSize + rightSize;
         
-        // 更新最大子樹紀錄 (包含自己)
-        if (totalSize > maxSubtreeSize) {
-            maxSubtreeSize = totalSize;
-            maxSubtreeName = node.name;
+        if (node.left == null && node.right == null) {
+            System.out.println(node.name + " " + totalSize);
+        }
+        
+        if (totalSize > maxSubtree.size) {
+            maxSubtree.name = node.name;
+            maxSubtree.size = totalSize;
         }
         
         return totalSize;
     }
 
     public static void main(String[] args) {
-        FolderNode root = new FolderNode("root", 100);
+        FolderNode root = new FolderNode("root", 10);
         root.left = new FolderNode("usr", 50);
         root.right = new FolderNode("var", 20);
-        root.left.left = new FolderNode("bin", 300); // 最大子目錄
-        root.right.right = new FolderNode("log", 250);
-        
+        root.left.left = new FolderNode("bin", 100);
+        root.left.right = new FolderNode("local", 30);
+        root.right.left = new FolderNode("log", 80);
+
+        maxSubtree = new FolderResult("", -1);
         int total = calculateSize(root);
-        System.out.println("總目錄大小: " + total);
-        System.out.println("最大子樹名稱: " + maxSubtreeName + " (大小: " + maxSubtreeSize + ")");
+        
+        System.out.println(total);
+        System.out.println(maxSubtree.name + " " + maxSubtree.size);
     }
 }

@@ -3,63 +3,88 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 
-class ColNode {
+class CollectorNode {
     String value;
-    ColNode left, right;
-    ColNode(String value) { this.value = value; }
+    CollectorNode left;
+    CollectorNode right;
+
+    CollectorNode(String value) {
+        this.value = value;
+    }
 }
 
 public class TraversalResultCollector {
-
-    public static List<String> preorder(ColNode node) {
-        List<String> result = new ArrayList<>();
-        preorderHelper(node, result);
-        return result;
+    static List<String> preorder(CollectorNode node) {
+        List<String> list = new ArrayList<>();
+        preorderHelper(node, list);
+        return list;
     }
-    private static void preorderHelper(ColNode node, List<String> res) {
+
+    private static void preorderHelper(CollectorNode node, List<String> list) {
         if (node == null) return;
-        res.add(node.value);
-        preorderHelper(node.left, res);
-        preorderHelper(node.right, res);
+        list.add(node.value);
+        preorderHelper(node.left, list);
+        preorderHelper(node.right, list);
     }
 
-    // Inorder 與 Postorder 概念相同，只改變 res.add 的位置
-    public static List<String> inorder(ColNode node) {
-        List<String> result = new ArrayList<>();
-        inorderHelper(node, result);
-        return result;
+    static List<String> inorder(CollectorNode node) {
+        List<String> list = new ArrayList<>();
+        inorderHelper(node, list);
+        return list;
     }
-    private static void inorderHelper(ColNode node, List<String> res) {
+
+    private static void inorderHelper(CollectorNode node, List<String> list) {
         if (node == null) return;
-        inorderHelper(node.left, res);
-        res.add(node.value);
-        inorderHelper(node.right, res);
+        inorderHelper(node.left, list);
+        list.add(node.value);
+        inorderHelper(node.right, list);
     }
 
-    public static List<String> levelOrder(ColNode node) {
-        List<String> result = new ArrayList<>();
-        if (node == null) return result;
+    static List<String> postorder(CollectorNode node) {
+        List<String> list = new ArrayList<>();
+        postorderHelper(node, list);
+        return list;
+    }
 
-        Queue<ColNode> queue = new ArrayDeque<>();
-        queue.offer(node);
+    private static void postorderHelper(CollectorNode node, List<String> list) {
+        if (node == null) return;
+        postorderHelper(node.left, list);
+        postorderHelper(node.right, list);
+        list.add(node.value);
+    }
 
+    static List<String> levelOrder(CollectorNode root) {
+        List<String> list = new ArrayList<>();
+        if (root == null) return list;
+        Queue<CollectorNode> queue = new ArrayDeque<>();
+        queue.offer(root);
         while (!queue.isEmpty()) {
-            ColNode current = queue.poll();
-            result.add(current.value);
+            CollectorNode current = queue.poll();
+            list.add(current.value);
             if (current.left != null) queue.offer(current.left);
             if (current.right != null) queue.offer(current.right);
         }
-        return result;
+        return list;
     }
 
     public static void main(String[] args) {
-        ColNode root = new ColNode("A");
-        root.left = new ColNode("B");
-        root.right = new ColNode("C");
-        root.left.left = new ColNode("D");
+        System.out.println(preorder(null));
 
-        System.out.println("Preorder: " + preorder(root));
-        System.out.println("Inorder: " + inorder(root));
-        System.out.println("Level-order: " + levelOrder(root));
+        CollectorNode single = new CollectorNode("A");
+        System.out.println(levelOrder(single));
+
+        CollectorNode leftSkewed = new CollectorNode("1");
+        leftSkewed.left = new CollectorNode("2");
+        leftSkewed.left.left = new CollectorNode("3");
+        System.out.println(inorder(leftSkewed));
+
+        CollectorNode complete = new CollectorNode("A");
+        complete.left = new CollectorNode("B");
+        complete.right = new CollectorNode("C");
+        complete.left.left = new CollectorNode("D");
+        complete.left.right = new CollectorNode("E");
+        complete.right.left = new CollectorNode("F");
+        complete.right.right = new CollectorNode("G");
+        System.out.println(postorder(complete));
     }
 }

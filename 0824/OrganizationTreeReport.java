@@ -1,60 +1,100 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
 
-class OrgNode {
+class OrgReportNode {
     String name;
-    OrgNode left, right;
-    OrgNode(String name) { this.name = name; }
+    OrgReportNode left;
+    OrgReportNode right;
+
+    OrgReportNode(String name) {
+        this.name = name;
+    }
 }
 
 public class OrganizationTreeReport {
-
-    public static OrgNode findParent(OrgNode node, String target) {
+    static String findParent(OrgReportNode node, String target) {
         if (node == null || target == null || node.name.equals(target)) return null;
         
         if ((node.left != null && node.left.name.equals(target)) || 
             (node.right != null && node.right.name.equals(target))) {
-            return node;
+            return node.name;
         }
         
-        OrgNode leftResult = findParent(node.left, target);
-        if (leftResult != null) return leftResult;
+        String leftSearch = findParent(node.left, target);
+        if (leftSearch != null) return leftSearch;
+        
         return findParent(node.right, target);
     }
 
-    public static List<String> pathFromRoot(OrgNode node, String target) {
-        List<String> path = new ArrayList<>();
-        if (findPathHelper(node, target, path)) {
-            return path;
-        }
-        return new ArrayList<>(); // 找不到回傳空結果
+    static int findDepth(OrgReportNode node, String target, int depth) {
+        if (node == null || target == null) return -1;
+        if (node.name.equals(target)) return depth;
+        
+        int leftDepth = findDepth(node.left, target, depth + 1);
+        if (leftDepth != -1) return leftDepth;
+        
+        return findDepth(node.right, target, depth + 1);
     }
 
-    private static boolean findPathHelper(OrgNode node, String target, List<String> path) {
-        if (node == null) return false;
-        
-        path.add(node.name);
-        if (node.name.equals(target)) return true;
-        
-        if (findPathHelper(node.left, target, path) || findPathHelper(node.right, target, path)) {
+    static List<String> pathFromRoot(OrgReportNode node, String target) {
+        List<String> path = new ArrayList<>();
+        if (findPathHelper(node, target, path)) {
+            Collections.reverse(path);
+            return path;
+        }
+        return new ArrayList<>();
+    }
+
+    private static boolean findPathHelper(OrgReportNode node, String target, List<String> path) {
+        if (node == null || target == null) return false;
+        if (node.name.equals(target) || 
+            findPathHelper(node.left, target, path) || 
+            findPathHelper(node.right, target, path)) {
+            path.add(node.name);
             return true;
         }
-        
-        path.remove(path.size() - 1); // 這個分支找不到，從路徑中移除
         return false;
     }
 
-    public static void main(String[] args) {
-        OrgNode root = new OrgNode("CEO");
-        root.left = new OrgNode("CTO");
-        root.right = new OrgNode("CFO");
-        root.left.left = new OrgNode("DevTeam");
-        root.left.right = new OrgNode("QATeam");
+    static void printByLevel(OrgReportNode root) {
+        if (root == null) return;
+        Queue<OrgReportNode> queue = new ArrayDeque<>();
+        queue.offer(root);
+        int level = 0;
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            System.out.print(level + " ");
+            for (int i = 0; i < size; i++) {
+                OrgReportNode current = queue.poll();
+                System.out.print(current.name + " ");
+                if (current.left != null) queue.offer(current.left);
+                if (current.right != null) queue.offer(current.right);
+            }
+            System.out.println();
+            level++;
+        }
+    }
 
-        OrgNode parent = findParent(root, "DevTeam");
-        System.out.println("DevTeam 的上層: " + (parent != null ? parent.name : "無"));
-        
-        System.out.println("CEO 到 QATeam 的路徑: " + pathFromRoot(root, "QATeam"));
-        System.out.println("CEO 到 HR 的路徑: " + pathFromRoot(root, "HR"));
+    public static void main(String[] args) {
+        OrgReportNode root = new OrgReportNode("CEO");
+        root.left = new OrgReportNode("VP_Sales");
+        root.right = new OrgReportNode("VP_Tech");
+        root.left.left = new OrgReportNode("Manager_A");
+        root.right.left = new OrgReportNode("Manager_B");
+
+        System.out.println(findParent(root, "Manager_A"));
+        System.out.println(findParent(root, "CEO"));
+        System.out.println(findParent(root, "Unknown"));
+
+        System.out.println(findDepth(root, "Manager_B", 0));
+        System.out.println(findDepth(root, "Unknown", 0));
+
+        System.out.println(pathFromRoot(root, "Manager_A"));
+        System.out.println(pathFromRoot(root, "Unknown"));
+
+        printByLevel(root);
     }
 }

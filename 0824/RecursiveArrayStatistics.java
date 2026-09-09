@@ -1,58 +1,39 @@
 public class RecursiveArrayStatistics {
-
-    public static int maximum(int[] values) {
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Array cannot be null or empty.");
-        }
-        return maximumHelper(values, 0);
+    static int maximum(int[] arr) {
+        if (arr == null || arr.length == 0) throw new IllegalArgumentException("Invalid array");
+        return maxHelper(arr, 0);
     }
 
-    private static int maximumHelper(int[] values, int index) {
-        if (index == values.length - 1) {
-            return values[index];
-        }
-        return Math.max(values[index], maximumHelper(values, index + 1));
+    private static int maxHelper(int[] arr, int index) {
+        if (index == arr.length - 1) return arr[index];
+        return Math.max(arr[index], maxHelper(arr, index + 1));
     }
 
-    public static int minimum(int[] values) {
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Array cannot be null or empty.");
-        }
-        return minimumHelper(values, 0);
+    static int minimum(int[] arr) {
+        if (arr == null || arr.length == 0) throw new IllegalArgumentException("Invalid array");
+        return minHelper(arr, 0);
     }
 
-    private static int minimumHelper(int[] values, int index) {
-        if (index == values.length - 1) {
-            return values[index];
-        }
-        return Math.min(values[index], minimumHelper(values, index + 1));
+    private static int minHelper(int[] arr, int index) {
+        if (index == arr.length - 1) return arr[index];
+        return Math.min(arr[index], minHelper(arr, index + 1));
     }
 
-    public static int countAbove(int[] values, int threshold) {
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Array cannot be null or empty.");
-        }
-        return countAboveHelper(values, threshold, 0);
+    static int countAbove(int[] arr, int target) {
+        if (arr == null || arr.length == 0) throw new IllegalArgumentException("Invalid array");
+        return countHelper(arr, target, 0);
     }
 
-    private static int countAboveHelper(int[] values, int threshold, int index) {
-        if (index >= values.length) {
-            return 0;
-        }
-        int currentCount = (values[index] > threshold) ? 1 : 0;
-        return currentCount + countAboveHelper(values, threshold, index + 1);
+    private static int countHelper(int[] arr, int target, int index) {
+        if (index == arr.length) return 0;
+        int count = arr[index] > target ? 1 : 0;
+        return count + countHelper(arr, target, index + 1);
     }
 
     public static void main(String[] args) {
-        int[] arr = {15, 3, 9, 21, 7};
-        System.out.println("Maximum: " + maximum(arr));
-        System.out.println("Minimum: " + minimum(arr));
-        System.out.println("Count > 10: " + countAbove(arr, 10));
-        
-        try {
-            maximum(new int[]{});
-        } catch (IllegalArgumentException e) {
-            System.out.println("Empty array test passed: " + e.getMessage());
-        }
+        int[] data = {15, 8, 22, 4, 19, 31, 2};
+        System.out.println("Max: " + maximum(data));
+        System.out.println("Min: " + minimum(data));
+        System.out.println("Above 15: " + countAbove(data, 15));
     }
 }

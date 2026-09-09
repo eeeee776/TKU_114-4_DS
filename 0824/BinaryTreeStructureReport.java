@@ -9,7 +9,6 @@ class ReportNode {
 }
 
 public class BinaryTreeStructureReport {
-
     static void printLeaves(ReportNode node) {
         if (node == null) return;
         if (node.left == null && node.right == null) {
@@ -35,33 +34,30 @@ public class BinaryTreeStructureReport {
         return 1 + Math.max(height(node.left), height(node.right));
     }
 
-    static void generateReport(ReportNode root, String treeName) {
-        System.out.println("=== " + treeName + " ===");
-        System.out.println("Root: " + (root != null ? root.value : "null"));
+    static void generateReport(String title, ReportNode root) {
+        System.out.println("--- " + title + " ---");
+        System.out.println("Root: " + (root == null ? "null" : root.value));
         System.out.print("Leaves: ");
         printLeaves(root);
         System.out.println();
         System.out.println("Size: " + size(root));
-        System.out.println("Leaf count: " + leafCount(root));
-        System.out.println("Height: " + height(root) + "\n");
+        System.out.println("Leaf Count: " + leafCount(root));
+        System.out.println("Height: " + height(root));
     }
 
     public static void main(String[] args) {
-        // 1. 建立至少 7 個 node 的樹
-        ReportNode root7 = new ReportNode("A");
-        root7.left = new ReportNode("B");
-        root7.right = new ReportNode("C");
-        root7.left.left = new ReportNode("D");
-        root7.left.right = new ReportNode("E");
-        root7.right.left = new ReportNode("F");
-        root7.right.right = new ReportNode("G");
-        generateReport(root7, "7-Node Tree");
+        generateReport("Empty Tree", null);
 
-        // 2. 測試 single-node tree
-        ReportNode single = new ReportNode("OnlyMe");
-        generateReport(single, "Single-Node Tree");
+        ReportNode single = new ReportNode("Single");
+        generateReport("Single-Node Tree", single);
 
-        // 3. 測試 empty tree
-        generateReport(null, "Empty Tree");
+        ReportNode root = new ReportNode("A");
+        root.left = new ReportNode("B");
+        root.right = new ReportNode("C");
+        root.left.left = new ReportNode("D");
+        root.left.right = new ReportNode("E");
+        root.right.left = new ReportNode("F");
+        root.right.right = new ReportNode("G");
+        generateReport("7-Node Tree", root);
     }
 }
