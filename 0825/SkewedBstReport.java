@@ -1,31 +1,71 @@
-class IntNode {
+class SkewedNode {
     int value;
-    IntNode left;
-    IntNode right;
+    SkewedNode left;
+    SkewedNode right;
 
-    IntNode(int value) { 
-        this.value = value; 
+    SkewedNode(int value) {
+        this.value = value;
     }
 }
+
 class SkewedBst {
-    private IntNode root;
-    // ... (省略 add, size, height 方法) ...
-    boolean add(int value) { /* 同上 */ return true; }
-    int size() { return size(root); }
-    private int size(IntNode node) { return node == null ? 0 : 1 + size(node.left) + size(node.right); }
-    int height() { return height(root); }
-    private int height(IntNode node) {
-        return node == null ? -1 : 1 + Math.max(height(node.left), height(node.right));
+    private SkewedNode root;
+
+    boolean add(int value) {
+        if (root == null) {
+            root = new SkewedNode(value);
+            return true;
+        }
+        SkewedNode current = root;
+        while (true) {
+            if (value == current.value) return false;
+            if (value < current.value) {
+                if (current.left == null) {
+                    current.left = new SkewedNode(value);
+                    return true;
+                }
+                current = current.left;
+            } else {
+                if (current.right == null) {
+                    current.right = new SkewedNode(value);
+                    return true;
+                }
+                current = current.right;
+            }
+        }
     }
 
-    // 計算尋找特定值的比較次數
-    int getSearchComparisons(int value) {
-        IntNode current = root;
+    int size() {
+        return sizeHelper(root);
+    }
+
+    private int sizeHelper(SkewedNode node) {
+        return node == null ? 0 : 1 + sizeHelper(node.left) + sizeHelper(node.right);
+    }
+
+    int height() {
+        return heightHelper(root);
+    }
+
+    private int heightHelper(SkewedNode node) {
+        return node == null ? -1 : 1 + Math.max(heightHelper(node.left), heightHelper(node.right));
+    }
+
+    int getTotalSearchCount(int[] targets) {
+        int total = 0;
+        for (int t : targets) {
+            total += getSearchCount(t);
+        }
+        return total;
+    }
+
+    private int getSearchCount(int target) {
         int count = 0;
+        SkewedNode current = root;
         while (current != null) {
             count++;
-            if (value == current.value) return count;
-            current = value < current.value ? current.left : current.right;
+            if (target == current.value) return count;
+            current = target < current.value ? current.left : current.right;
         }
         return count;
     }
@@ -36,25 +76,20 @@ public class SkewedBstReport {
         int[] sortedData = {10, 20, 30, 40, 50, 60, 70};
         int[] balancedData = {40, 20, 60, 10, 30, 50, 70};
 
-        SkewedBst skewedTree = new SkewedBst();
+        SkewedBst sortedTree = new SkewedBst();
         SkewedBst balancedTree = new SkewedBst();
 
-        for (int v : sortedData) skewedTree.add(v);
+        for (int v : sortedData) sortedTree.add(v);
         for (int v : balancedData) balancedTree.add(v);
 
-        report("Skewed Tree (Sorted Insert)", skewedTree, sortedData);
-        report("Balanced Tree (Random Insert)", balancedTree, balancedData);
-    }
+        System.out.println("Sorted Insert Tree:");
+        System.out.println("Size: " + sortedTree.size());
+        System.out.println("Height: " + sortedTree.height());
+        System.out.println("Search Count for all: " + sortedTree.getTotalSearchCount(sortedData));
 
-    private static void report(String name, SkewedBst tree, int[] data) {
-        System.out.println("--- " + name + " ---");
-        System.out.println("Size: " + tree.size() + ", Height: " + tree.height());
-        
-        int totalComparisons = 0;
-        for (int v : data) {
-            totalComparisons += tree.getSearchComparisons(v);
-        }
-        System.out.println("尋找所有節點的總比較次數: " + totalComparisons);
-        System.out.println();
+        System.out.println("\nBalanced Insert Tree:");
+        System.out.println("Size: " + balancedTree.size());
+        System.out.println("Height: " + balancedTree.height());
+        System.out.println("Search Count for all: " + balancedTree.getTotalSearchCount(sortedData));
     }
 }

@@ -1,47 +1,60 @@
-class Product {
+class InventoryProduct {
     int id;
     String name;
     int stock;
 
-    Product(int id, String name, int stock) {
+    InventoryProduct(int id, String name, int stock) {
         this.id = id;
         this.name = name;
         this.stock = Math.max(0, stock);
     }
+
     @Override
     public String toString() {
-        return id + ":" + name + "(剩餘" + stock + ")";
+        return id + " " + name + " (Stock: " + stock + ")";
     }
 }
 
-class ProductNode {
-    Product data;
-    ProductNode left;
-    ProductNode right;
-    ProductNode(Product data) { this.data = data; }
+class InvNode {
+    InventoryProduct data;
+    InvNode left;
+    InvNode right;
+
+    InvNode(InventoryProduct data) {
+        this.data = data;
+    }
 }
 
-class ProductBst {
-    private ProductNode root;
+public class ProductInventoryBst {
+    private InvNode root;
 
-    boolean add(Product p) {
-        if (p == null) return false;
-        if (root == null) { root = new ProductNode(p); return true; }
-        ProductNode current = root;
+    boolean add(InventoryProduct product) {
+        if (product == null) return false;
+        if (root == null) {
+            root = new InvNode(product);
+            return true;
+        }
+        InvNode current = root;
         while (true) {
-            if (p.id == current.data.id) return false;
-            if (p.id < current.data.id) {
-                if (current.left == null) { current.left = new ProductNode(p); return true; }
+            if (product.id == current.data.id) return false;
+            if (product.id < current.data.id) {
+                if (current.left == null) {
+                    current.left = new InvNode(product);
+                    return true;
+                }
                 current = current.left;
             } else {
-                if (current.right == null) { current.right = new ProductNode(p); return true; }
+                if (current.right == null) {
+                    current.right = new InvNode(product);
+                    return true;
+                }
                 current = current.right;
             }
         }
     }
 
-    Product find(int id) {
-        ProductNode current = root;
+    InventoryProduct find(int id) {
+        InvNode current = root;
         while (current != null) {
             if (id == current.data.id) return current.data;
             current = id < current.data.id ? current.left : current.right;
@@ -50,74 +63,73 @@ class ProductBst {
     }
 
     boolean restock(int id, int amount) {
-        Product p = find(id);
-        if (p == null || amount <= 0) return false;
+        if (amount <= 0) return false;
+        InventoryProduct p = find(id);
+        if (p == null) return false;
         p.stock += amount;
         return true;
     }
 
     boolean deduct(int id, int amount) {
-        Product p = find(id);
-        if (p == null || amount <= 0 || p.stock < amount) return false;
+        if (amount <= 0) return false;
+        InventoryProduct p = find(id);
+        if (p == null || p.stock < amount) return false;
         p.stock -= amount;
         return true;
     }
 
-    boolean remove(int id) {
+    boolean delete(int id) {
         if (find(id) == null) return false;
-        root = remove(root, id);
+        root = deleteHelper(root, id);
         return true;
     }
 
-    private ProductNode remove(ProductNode node, int id) {
+    private InvNode deleteHelper(InvNode node, int id) {
         if (node == null) return null;
-        if (id < node.data.id) node.left = remove(node.left, id);
-        else if (id > node.data.id) node.right = remove(node.right, id);
-        else {
+        if (id < node.data.id) {
+            node.left = deleteHelper(node.left, id);
+        } else if (id > node.data.id) {
+            node.right = deleteHelper(node.right, id);
+        } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
-            ProductNode successor = getMin(node.right);
+            InvNode successor = getMin(node.right);
             node.data = successor.data;
-            node.right = remove(node.right, successor.data.id);
+            node.right = deleteHelper(node.right, successor.data.id);
         }
         return node;
     }
 
-    private ProductNode getMin(ProductNode node) {
+    private InvNode getMin(InvNode node) {
         while (node.left != null) node = node.left;
         return node;
     }
 
     void inorderReport() {
-        System.out.println("--- 庫存報表 ---");
-        inorder(root);
-        System.out.println("----------------");
+        inorderHelper(root);
+        System.out.println();
     }
 
-    private void inorder(ProductNode node) {
+    private void inorderHelper(InvNode node) {
         if (node == null) return;
-        inorder(node.left);
-        System.out.println(node.data);
-        inorder(node.right);
+        inorderHelper(node.left);
+        System.out.print(node.data + " | ");
+        inorderHelper(node.right);
     }
-}
 
-public class ProductInventoryBst {
     public static void main(String[] args) {
-        // 修正：宣告與實例化改用 ProductBst
-        ProductBst inv = new ProductBst();
-        inv.add(new Product(201, "滑鼠", 10));
-        inv.add(new Product(105, "鍵盤", 5));
-        inv.add(new Product(309, "螢幕", 2));
+        ProductInventoryBst inv = new ProductInventoryBst();
+        inv.add(new InventoryProduct(200, "Monitor", 5));
+        inv.add(new InventoryProduct(100, "Mouse", 10));
+        inv.add(new InventoryProduct(300, "Keyboard", 3));
 
-        inv.restock(105, 5);      // 鍵盤變 10
-        inv.deduct(309, 1);       // 螢幕變 1
-        System.out.println("扣除過多庫存: " + inv.deduct(201, 15)); // 預期 false
-
+        inv.restock(100, 5);
+        inv.deduct(200, 2);
+        inv.deduct(300, 10);
+        
         inv.inorderReport();
 
-        inv.remove(201); // 下架滑鼠
-        System.out.println("下架滑鼠後:");
+        inv.delete(200);
         inv.inorderReport();
     }
 }

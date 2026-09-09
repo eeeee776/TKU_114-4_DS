@@ -1,14 +1,15 @@
 class Student {
-    int studentId;
+    String studentId;
     String name;
 
-    Student(int studentId, String name) {
+    Student(String studentId, String name) {
         this.studentId = studentId;
         this.name = name;
     }
+
     @Override
     public String toString() {
-        return "[" + studentId + "] " + name;
+        return studentId + " " + name;
     }
 }
 
@@ -16,13 +17,16 @@ class StudentNode {
     Student data;
     StudentNode left;
     StudentNode right;
-    StudentNode(Student data) { this.data = data; }
+
+    StudentNode(Student data) {
+        this.data = data;
+    }
 }
 
-class StudentBst {
+public class StudentBstIndex {
     private StudentNode root;
 
-    boolean add(Student student) {
+    boolean insert(Student student) {
         if (student == null) return false;
         if (root == null) {
             root = new StudentNode(student);
@@ -30,8 +34,9 @@ class StudentBst {
         }
         StudentNode current = root;
         while (true) {
-            if (student.studentId == current.data.studentId) return false; // 拒絕重複學號
-            if (student.studentId < current.data.studentId) {
+            int cmp = student.studentId.compareTo(current.data.studentId);
+            if (cmp == 0) return false;
+            if (cmp < 0) {
                 if (current.left == null) {
                     current.left = new StudentNode(student);
                     return true;
@@ -47,71 +52,55 @@ class StudentBst {
         }
     }
 
-    Student find(int studentId) {
+    Student search(String studentId) {
         StudentNode current = root;
         while (current != null) {
-            if (studentId == current.data.studentId) return current.data;
-            current = studentId < current.data.studentId ? current.left : current.right;
+            int cmp = studentId.compareTo(current.data.studentId);
+            if (cmp == 0) return current.data;
+            current = cmp < 0 ? current.left : current.right;
         }
         return null;
     }
 
-    boolean remove(int studentId) {
-        if (find(studentId) == null) return false;
-        root = remove(root, studentId);
+    boolean delete(String studentId) {
+        if (search(studentId) == null) return false;
+        root = deleteHelper(root, studentId);
         return true;
     }
 
-    private StudentNode remove(StudentNode node, int studentId) {
+    private StudentNode deleteHelper(StudentNode node, String studentId) {
         if (node == null) return null;
-        if (studentId < node.data.studentId) {
-            node.left = remove(node.left, studentId);
-        } else if (studentId > node.data.studentId) {
-            node.right = remove(node.right, studentId);
+        int cmp = studentId.compareTo(node.data.studentId);
+        if (cmp < 0) {
+            node.left = deleteHelper(node.left, studentId);
+        } else if (cmp > 0) {
+            node.right = deleteHelper(node.right, studentId);
         } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
-            StudentNode successor = minimumNode(node.right);
-            node.data = successor.data; // 直接替換物件 reference
-            node.right = remove(node.right, successor.data.studentId);
+            StudentNode successor = getMin(node.right);
+            node.data = successor.data;
+            node.right = deleteHelper(node.right, successor.data.studentId);
         }
         return node;
     }
 
-    private StudentNode minimumNode(StudentNode node) {
+    private StudentNode getMin(StudentNode node) {
         while (node.left != null) node = node.left;
         return node;
     }
 
-    void inorder() {
-        inorder(root);
-        System.out.println();
-    }
-
-    private void inorder(StudentNode node) {
-        if (node == null) return;
-        inorder(node.left);
-        System.out.print(node.data + " | ");
-        inorder(node.right);
-    }
-}
-
-public class StudentBstIndex {
     public static void main(String[] args) {
-        StudentBst index = new StudentBst();
-        index.add(new Student(105, "Alice"));
-        index.add(new Student(102, "Bob"));
-        index.add(new Student(108, "Charlie"));
-        
-        System.out.println("重複加入 102: " + index.add(new Student(102, "David"))); // 預期 false
-        
-        System.out.println("查詢 108: " + index.find(108));
-        
-        System.out.print("刪除前: ");
-        index.inorder();
-        
-        index.remove(105);
-        System.out.print("刪除 Root (105) 後: ");
-        index.inorder();
+        StudentBstIndex index = new StudentBstIndex();
+        System.out.println(index.insert(new Student("S02", "Ben")));
+        System.out.println(index.insert(new Student("S01", "Amy")));
+        System.out.println(index.insert(new Student("S03", "Cara")));
+        System.out.println(index.insert(new Student("S01", "Duplicate")));
+
+        System.out.println(index.search("S01"));
+        System.out.println(index.search("S99"));
+
+        System.out.println(index.delete("S02"));
+        System.out.println(index.search("S02"));
     }
 }

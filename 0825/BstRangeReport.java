@@ -1,24 +1,35 @@
-class IntNode {
+class RangeNode {
     int value;
-    IntNode left;
-    IntNode right;
-    IntNode(int value) { this.value = value; }
+    RangeNode left;
+    RangeNode right;
+
+    RangeNode(int value) {
+        this.value = value;
+    }
 }
 
 class RangeBst {
-    private IntNode root;
+    private RangeNode root;
 
-    // ... (省略基本的 add method，同前面範例) ...
     boolean add(int value) {
-        if (root == null) { root = new IntNode(value); return true; }
-        IntNode current = root;
+        if (root == null) {
+            root = new RangeNode(value);
+            return true;
+        }
+        RangeNode current = root;
         while (true) {
             if (value == current.value) return false;
             if (value < current.value) {
-                if (current.left == null) { current.left = new IntNode(value); return true; }
+                if (current.left == null) {
+                    current.left = new RangeNode(value);
+                    return true;
+                }
                 current = current.left;
             } else {
-                if (current.right == null) { current.right = new IntNode(value); return true; }
+                if (current.right == null) {
+                    current.right = new RangeNode(value);
+                    return true;
+                }
                 current = current.right;
             }
         }
@@ -26,46 +37,39 @@ class RangeBst {
 
     Integer minimum() {
         if (root == null) return null;
-        IntNode current = root;
+        RangeNode current = root;
         while (current.left != null) current = current.left;
         return current.value;
     }
 
     Integer maximum() {
         if (root == null) return null;
-        IntNode current = root;
+        RangeNode current = root;
         while (current.right != null) current = current.right;
         return current.value;
     }
 
     void printRange(int low, int high) {
-        // 處理 low > high 的防呆機制
         if (low > high) {
             int temp = low;
             low = high;
             high = temp;
         }
-        System.out.print("範圍 [" + low + ", " + high + "]: ");
-        printRange(root, low, high);
+        System.out.print("Range [" + low + ", " + high + "]: ");
+        rangeHelper(root, low, high);
         System.out.println();
     }
 
-    private void printRange(IntNode node, int low, int high) {
+    private void rangeHelper(RangeNode node, int low, int high) {
         if (node == null) return;
-        
-        // 如果當前值大於 low，左子樹才有可能有落在範圍內的值
         if (node.value > low) {
-            printRange(node.left, low, high);
+            rangeHelper(node.left, low, high);
         }
-        
-        // 如果當前值在範圍內，印出
         if (node.value >= low && node.value <= high) {
             System.out.print(node.value + " ");
         }
-        
-        // 如果當前值小於 high，右子樹才有可能有落在範圍內的值
         if (node.value < high) {
-            printRange(node.right, low, high);
+            rangeHelper(node.right, low, high);
         }
     }
 }
@@ -73,12 +77,13 @@ class RangeBst {
 public class BstRangeReport {
     public static void main(String[] args) {
         RangeBst tree = new RangeBst();
-        for (int v : new int[]{50, 30, 70, 20, 40, 60, 80}) tree.add(v);
-
+        int[] values = {50, 30, 70, 20, 40, 60, 80};
+        for (int v : values) {
+            tree.add(v);
+        }
         System.out.println("Min: " + tree.minimum());
         System.out.println("Max: " + tree.maximum());
-        
-        tree.printRange(25, 65); // 預期: 30 40 50 60
-        tree.printRange(80, 10); // 測試 low > high 互換，預期: 20 30 40 50 60 70 80
+        tree.printRange(30, 60);
+        tree.printRange(60, 30);
     }
 }

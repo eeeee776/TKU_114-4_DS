@@ -10,7 +10,7 @@ class CountNode {
     }
 }
 
-class CounterBst {
+class CountBst {
     private CountNode root;
 
     void add(int value) {
@@ -21,7 +21,7 @@ class CounterBst {
         CountNode current = root;
         while (true) {
             if (value == current.value) {
-                current.count++; // 重複值，增加計數
+                current.count++;
                 return;
             }
             if (value < current.value) {
@@ -41,25 +41,25 @@ class CounterBst {
     }
 
     void inorder() {
-        inorder(root);
+        inorderHelper(root);
         System.out.println();
     }
 
-    private void inorder(CountNode node) {
+    private void inorderHelper(CountNode node) {
         if (node == null) return;
-        inorder(node.left);
+        inorderHelper(node.left);
         System.out.print(node.value + "(" + node.count + ") ");
-        inorder(node.right);
+        inorderHelper(node.right);
     }
 }
 
 public class BstDuplicateCounter {
     public static void main(String[] args) {
-        CounterBst tree = new CounterBst();
-        int[] data = {50, 30, 70, 30, 50, 50, 80, 20, 30};
-        for (int v : data) tree.add(v);
-
-        System.out.print("Inorder 輸出 (附帶次數): ");
-        tree.inorder(); // 預期輸出: 20(1) 30(3) 50(3) 70(1) 80(1) 
+        CountBst tree = new CountBst();
+        int[] values = {10, 5, 15, 10, 5, 10, 20};
+        for (int v : values) {
+            tree.add(v);
+        }
+        tree.inorder();
     }
 }

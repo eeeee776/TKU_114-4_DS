@@ -1,48 +1,57 @@
-class Order {
+class OrderRecord {
     int orderId;
-    String customerName;
     int amount;
-    boolean isCancelled;
 
-    Order(int orderId, String customerName, int amount) {
+    OrderRecord(int orderId, int amount) {
         this.orderId = orderId;
-        this.customerName = customerName;
-        this.amount = amount;
-        this.isCancelled = false;
+        this.amount = Math.max(0, amount);
     }
-    
+
     @Override
     public String toString() {
-        return "[" + orderId + "] " + customerName + " - $" + amount + (isCancelled ? " (已取消)" : "");
+        return "Order[" + orderId + "]: " + amount;
     }
 }
 
 class OrderNode {
-    Order data; OrderNode left, right;
-    OrderNode(Order data) { this.data = data; }
+    OrderRecord data;
+    OrderNode left;
+    OrderNode right;
+
+    OrderNode(OrderRecord data) {
+        this.data = data;
+    }
 }
 
-
-class OrderTree {
+public class OrderBstSystem {
     private OrderNode root;
 
-    boolean add(Order order) {
-        if (order == null) return false;
-        if (root == null) { root = new OrderNode(order); return true; }
+    boolean add(int orderId, int amount) {
+        OrderRecord record = new OrderRecord(orderId, amount);
+        if (root == null) {
+            root = new OrderNode(record);
+            return true;
+        }
         OrderNode current = root;
         while (true) {
-            if (order.orderId == current.data.orderId) return false;
-            if (order.orderId < current.data.orderId) {
-                if (current.left == null) { current.left = new OrderNode(order); return true; }
+            if (orderId == current.data.orderId) return false;
+            if (orderId < current.data.orderId) {
+                if (current.left == null) {
+                    current.left = new OrderNode(record);
+                    return true;
+                }
                 current = current.left;
             } else {
-                if (current.right == null) { current.right = new OrderNode(order); return true; }
+                if (current.right == null) {
+                    current.right = new OrderNode(record);
+                    return true;
+                }
                 current = current.right;
             }
         }
     }
 
-    Order find(int orderId) {
+    OrderRecord find(int orderId) {
         OrderNode current = root;
         while (current != null) {
             if (orderId == current.data.orderId) return current.data;
@@ -51,73 +60,79 @@ class OrderTree {
         return null;
     }
 
-    boolean cancelOrder(int orderId) {
-        Order order = find(orderId);
-        if (order != null && !order.isCancelled) {
-            order.isCancelled = true;
-            return true;
-        }
-        return false;
+    boolean updateAmount(int orderId, int newAmount) {
+        OrderRecord record = find(orderId);
+        if (record == null) return false;
+        record.amount = Math.max(0, newAmount);
+        return true;
     }
 
-    boolean updateAmount(int orderId, int newAmount) {
-        Order order = find(orderId);
-        if (order != null && !order.isCancelled && newAmount >= 0) {
-            order.amount = newAmount;
-            return true;
+    boolean cancel(int orderId) {
+        if (find(orderId) == null) return false;
+        root = cancelHelper(root, orderId);
+        return true;
+    }
+
+    private OrderNode cancelHelper(OrderNode node, int orderId) {
+        if (node == null) return null;
+        if (orderId < node.data.orderId) {
+            node.left = cancelHelper(node.left, orderId);
+        } else if (orderId > node.data.orderId) {
+            node.right = cancelHelper(node.right, orderId);
+        } else {
+            if (node.left == null) return node.right;
+            if (node.right == null) return node.left;
+            OrderNode successor = node.right;
+            while (successor.left != null) successor = successor.left;
+            node.data = successor.data;
+            node.right = cancelHelper(node.right, successor.data.orderId);
         }
-        return false;
+        return node;
     }
 
     void rangeReport(int minId, int maxId) {
-        System.out.println("--- 訂單範圍 " + minId + " 到 " + maxId + " ---");
-        rangeReport(root, minId, maxId);
-        System.out.println("-------------------------");
+        rangeHelper(root, minId, maxId);
+        System.out.println();
     }
 
-    private void rangeReport(OrderNode node, int minId, int maxId) {
+    private void rangeHelper(OrderNode node, int minId, int maxId) {
         if (node == null) return;
-        if (node.data.orderId > minId) rangeReport(node.left, minId, maxId);
+        if (node.data.orderId > minId) {
+            rangeHelper(node.left, minId, maxId);
+        }
         if (node.data.orderId >= minId && node.data.orderId <= maxId) {
-            System.out.println(node.data);
+            System.out.print(node.data + " | ");
         }
-        if (node.data.orderId < maxId) rangeReport(node.right, minId, maxId);
+        if (node.data.orderId < maxId) {
+            rangeHelper(node.right, minId, maxId);
+        }
     }
 
-    void printSummary() {
-        int[] stats = new int[3]; 
-        calculateSummary(root, stats);
-        System.out.println("營運摘要: 有效訂單 " + stats[0] + " 筆，已取消 " + stats[1] + " 筆，總營收 $" + stats[2]);
+    void summary() {
+        int[] result = new int[2];
+        summaryHelper(root, result);
+        System.out.println("Total Orders: " + result[0] + ", Total Amount: " + result[1]);
     }
 
-    private void calculateSummary(OrderNode node, int[] stats) {
+    private void summaryHelper(OrderNode node, int[] result) {
         if (node == null) return;
-        calculateSummary(node.left, stats);
-        
-        if (node.data.isCancelled) {
-            stats[1]++;
-        } else {
-            stats[0]++;
-            stats[2] += node.data.amount;
-        }
-        
-        calculateSummary(node.right, stats);
+        result[0]++;
+        result[1] += node.data.amount;
+        summaryHelper(node.left, result);
+        summaryHelper(node.right, result);
     }
-}
 
-public class OrderBstSystem {
     public static void main(String[] args) {
-        OrderTree sys = new OrderTree();
-        sys.add(new Order(1005, "Alice", 1200));
-        sys.add(new Order(1002, "Bob", 800));
-        sys.add(new Order(1008, "Charlie", 3500));
-        sys.add(new Order(1004, "David", 450));
+        OrderBstSystem sys = new OrderBstSystem();
+        sys.add(1005, 500);
+        sys.add(1001, 300);
+        sys.add(1008, 1200);
+        sys.add(1003, 400);
 
-        sys.updateAmount(1002, 950); 
-        sys.cancelOrder(1004);       
+        sys.updateAmount(1001, 350);
+        sys.cancel(1008);
 
         sys.rangeReport(1000, 1005);
-        
-        sys.printSummary(); 
+        sys.summary();
     }
 }

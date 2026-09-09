@@ -1,68 +1,84 @@
-// 復用實作題五的邏輯擴充
-class ExpNode {
-    int value; ExpNode left, right;
-    ExpNode(int value) { this.value = value; }
+class ShapeNode {
+    int value;
+    ShapeNode left;
+    ShapeNode right;
+
+    ShapeNode(int value) {
+        this.value = value;
+    }
 }
 
-class ExpBst {
-    private ExpNode root;
+class ShapeBst {
+    private ShapeNode root;
+    private int totalComparisons;
+
     void add(int value) {
-        if (root == null) { root = new ExpNode(value); return; }
-        ExpNode c = root;
+        if (root == null) {
+            root = new ShapeNode(value);
+            return;
+        }
+        ShapeNode current = root;
         while (true) {
-            if (value == c.value) return;
-            if (value < c.value) {
-                if (c.left == null) { c.left = new ExpNode(value); return; }
-                c = c.left;
+            if (value == current.value) return;
+            if (value < current.value) {
+                if (current.left == null) {
+                    current.left = new ShapeNode(value);
+                    return;
+                }
+                current = current.left;
             } else {
-                if (c.right == null) { c.right = new ExpNode(value); return; }
-                c = c.right;
+                if (current.right == null) {
+                    current.right = new ShapeNode(value);
+                    return;
+                }
+                current = current.right;
             }
         }
     }
-    
-    int height() { return height(root); }
-    private int height(ExpNode n) { return n == null ? -1 : 1 + Math.max(height(n.left), height(n.right)); }
-    
-    int getSearchComparisons(int target) {
-        ExpNode c = root;
-        int count = 0;
-        while (c != null) {
-            count++;
-            if (target == c.value) return count;
-            c = target < c.value ? c.left : c.right;
+
+    int height() {
+        return heightHelper(root);
+    }
+
+    private int heightHelper(ShapeNode node) {
+        return node == null ? -1 : 1 + Math.max(heightHelper(node.left), heightHelper(node.right));
+    }
+
+    int getTotalSearchCount(int[] targets) {
+        totalComparisons = 0;
+        for (int t : targets) {
+            searchCount(t);
         }
-        return count;
+        return totalComparisons;
+    }
+
+    private void searchCount(int target) {
+        ShapeNode current = root;
+        while (current != null) {
+            totalComparisons++;
+            if (target == current.value) return;
+            current = target < current.value ? current.left : current.right;
+        }
     }
 }
 
 public class BstShapeExperiment {
     public static void main(String[] args) {
-        // 1到15的完全排序 (最差情況)
-        int[] sortedSeq = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        // Level-order 插入，形成完美平衡樹 (最佳情況)
-        int[] balancedSeq = {8, 4,12, 2,6,10,14, 1,3,5,7,9,11,13,15};
-        // 隨機順序
-        int[] randomSeq = {5,12,3,9,15,1,7,14,10,2,8,13,6,11,4};
+        int[] sortedData = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        int[] reverseData = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+        int[] balancedData = {8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15};
 
-        runExperiment("Sorted Sequence (Skewed)", sortedSeq);
-        runExperiment("Balanced Sequence", balancedSeq);
-        runExperiment("Random Sequence", randomSeq);
-    }
+        ShapeBst sortedTree = new ShapeBst();
+        for (int v : sortedData) sortedTree.add(v);
 
-    private static void runExperiment(String title, int[] insertOrder) {
-        ExpBst tree = new ExpBst();
-        for (int v : insertOrder) tree.add(v);
+        ShapeBst reverseTree = new ShapeBst();
+        for (int v : reverseData) reverseTree.add(v);
 
-        int totalComparisons = 0;
-        // 模擬搜尋 1 到 15 每一個節點
-        for (int i = 1; i <= 15; i++) {
-            totalComparisons += tree.getSearchComparisons(i);
-        }
+        ShapeBst balancedTree = new ShapeBst();
+        for (int v : balancedData) balancedTree.add(v);
 
-        System.out.println(title);
-        System.out.println("  Tree Height: " + tree.height());
-        System.out.println("  1-15 全部找一次的總比較次數: " + totalComparisons);
-        System.out.println();
+        System.out.println("Sorted: Height=" + sortedTree.height() + ", Comps=" + sortedTree.getTotalSearchCount(sortedData));
+        System.out.println("Reverse: Height=" + reverseTree.height() + ", Comps=" + reverseTree.getTotalSearchCount(reverseData));
+        System.out.println("Balanced: Height=" + balancedTree.height() + ", Comps=" + balancedTree.getTotalSearchCount(balancedData));
     }
 }
