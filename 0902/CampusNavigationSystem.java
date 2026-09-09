@@ -9,80 +9,91 @@ import java.util.Queue;
 import java.util.Set;
 
 public class CampusNavigationSystem {
-    private Map<String, String> locationDetails = new HashMap<>();
-    private Map<String, List<String>> graph = new HashMap<>();
+    private final Map<String, List<String>> graph = new HashMap<>();
 
-    public void addLocation(String id, String name) {
-        locationDetails.put(id, name);
-        graph.putIfAbsent(id, new ArrayList<>());
+    public boolean addLocation(String location) {
+        if (location == null || location.isBlank()) return false;
+        String loc = location.trim();
+        if (graph.containsKey(loc)) return false;
+        graph.put(loc, new ArrayList<>());
+        return true;
     }
 
-    public void addPath(String id1, String id2) {
-        if (graph.containsKey(id1) && graph.containsKey(id2)) {
-            graph.get(id1).add(id2);
-            graph.get(id2).add(id1); // 無向圖
+    public boolean addRoad(String location1, String location2) {
+        if (location1 == null || location2 == null) return false;
+        String loc1 = location1.trim();
+        String loc2 = location2.trim();
+        if (!graph.containsKey(loc1) || !graph.containsKey(loc2)) return false;
+        if (loc1.equals(loc2)) return false;
+
+        List<String> list1 = graph.get(loc1);
+        List<String> list2 = graph.get(loc2);
+        if (!list1.contains(loc2)) {
+            list1.add(loc2);
+            list2.add(loc1);
+            return true;
         }
+        return false;
     }
 
-    // BFS 尋找最短路徑，並回傳地點名稱清單
-    public List<String> navigate(String startId, String targetId) {
-        if (!graph.containsKey(startId) || !graph.containsKey(targetId)) {
-            System.out.println("[錯誤] 起點或終點不存在於地圖中");
-            return List.of();
+    public List<String> navigate(String start, String target) {
+        List<String> result = new ArrayList<>();
+        if (start == null || target == null) return result;
+        String s = start.trim();
+        String t = target.trim();
+        if (!graph.containsKey(s) || !graph.containsKey(t)) return result;
+        if (s.equals(t)) {
+            result.add(s);
+            return result;
         }
 
-        Queue<String> queue = new ArrayDeque<>();
+        Map<String, String> predecessor = new HashMap<>();
         Set<String> visited = new HashSet<>();
-        Map<String, String> previous = new HashMap<>();
+        Queue<String> queue = new ArrayDeque<>();
 
-        queue.offer(startId);
-        visited.add(startId);
+        queue.offer(s);
+        visited.add(s);
 
-        while (!queue.isEmpty()) {
+        boolean found = false;
+        while (!queue.isEmpty() && !found) {
             String current = queue.poll();
-            if (current.equals(targetId)) break;
-
-            for (String next : graph.getOrDefault(current, List.of())) {
-                if (visited.add(next)) {
-                    previous.put(next, current);
-                    queue.offer(next);
+            for (String neighbor : graph.get(current)) {
+                if (visited.add(neighbor)) {
+                    predecessor.put(neighbor, current);
+                    if (neighbor.equals(t)) {
+                        found = true;
+                        break;
+                    }
+                    queue.offer(neighbor);
                 }
             }
         }
 
-        if (!visited.contains(targetId)) {
-            return List.of(); // 無法到達
-        }
+        if (!found) return result;
 
-        List<String> pathNames = new ArrayList<>();
-        for (String at = targetId; at != null; at = previous.get(at)) {
-            pathNames.add(locationDetails.get(at));
+        String current = t;
+        while (current != null) {
+            result.add(current);
+            current = predecessor.get(current);
         }
-        Collections.reverse(pathNames);
-        return pathNames;
+        Collections.reverse(result);
+        return result;
     }
 
     public static void main(String[] args) {
-        CampusNavigationSystem campus = new CampusNavigationSystem();
-        
-        // 建立地點
-        campus.addLocation("L1", "校門口");
-        campus.addLocation("L2", "行政大樓");
-        campus.addLocation("L3", "圖書館");
-        campus.addLocation("L4", "資訊大樓");
-        campus.addLocation("L5", "學生餐廳");
-        campus.addLocation("L6", "新校區 (未開放)");
+        CampusNavigationSystem map = new CampusNavigationSystem();
+        map.addLocation("Gate");
+        map.addLocation("Library");
+        map.addLocation("Cafeteria");
+        map.addLocation("Dorm");
 
-        // 建立道路
-        campus.addPath("L1", "L2");
-        campus.addPath("L1", "L5");
-        campus.addPath("L2", "L3");
-        campus.addPath("L3", "L4");
-        campus.addPath("L5", "L4");
+        map.addRoad("Gate", "Library");
+        map.addRoad("Library", "Cafeteria");
+        map.addRoad("Library", "Dorm");
+        map.addRoad("Cafeteria", "Dorm");
 
-        System.out.println("一般案例 (校門口到資訊大樓): " + campus.navigate("L1", "L4"));
-        System.out.println("邊界案例 (原地導航): " + campus.navigate("L3", "L3"));
-        System.out.println("邊界案例 (無路徑可達孤立節點): " + campus.navigate("L1", "L6"));
-        System.out.println("邊界案例 (Missing Vertex): " + campus.navigate("L1", "L99"));
+        System.out.println("Route Gate -> Dorm: " + map.navigate("Gate", "Dorm"));
+        System.out.println("Route Dorm -> Gate: " + map.navigate("Dorm", "Gate"));
+        System.out.println("Route Gate -> Missing: " + map.navigate("Gate", "Gym"));
     }
 }

@@ -9,66 +9,71 @@ import java.util.Queue;
 import java.util.Set;
 
 public class MetroTransferPath {
-    static class PathResult {
-        List<String> path;
-        int edgeCount;
+    public static class PathResult {
+        public final List<String> path;
+        public final int edgeCount;
 
-        PathResult(List<String> path, int edgeCount) {
+        public PathResult(List<String> path, int edgeCount) {
             this.path = path;
             this.edgeCount = edgeCount;
         }
+
         @Override
-        public String toString() { return String.format("Path: %s (Edges: %d)", path, edgeCount); }
+        public String toString() {
+            return "Path: " + path + " | Edges: " + edgeCount;
+        }
     }
 
-    static PathResult findShortestPath(Map<String, List<String>> graph, String start, String target) {
-        if (graph == null || !graph.containsKey(start) || !graph.containsKey(target)) {
-            return new PathResult(List.of(), 0);
-        }
+    public static PathResult findShortest(Map<String, List<String>> graph, String start, String target) {
+        if (graph == null || start == null || target == null) return new PathResult(List.of(), -1);
+        if (!graph.containsKey(start) || !graph.containsKey(target)) return new PathResult(List.of(), -1);
+        if (start.equals(target)) return new PathResult(List.of(start), 0);
 
         Queue<String> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
-        Map<String, String> previous = new HashMap<>();
+        Map<String, String> predecessor = new HashMap<>();
 
         queue.offer(start);
         visited.add(start);
 
+        boolean found = false;
         while (!queue.isEmpty()) {
             String current = queue.poll();
-            if (current.equals(target)) break;
-
+            if (current.equals(target)) {
+                found = true;
+                break;
+            }
             for (String next : graph.getOrDefault(current, List.of())) {
                 if (graph.containsKey(next) && visited.add(next)) {
-                    previous.put(next, current);
+                    predecessor.put(next, current);
                     queue.offer(next);
                 }
             }
         }
 
-        if (!visited.contains(target)) return new PathResult(List.of(), 0);
+        if (!found) return new PathResult(List.of(), -1);
 
         List<String> path = new ArrayList<>();
-        for (String at = target; at != null; at = previous.get(at)) {
+        for (String at = target; at != null; at = predecessor.get(at)) {
             path.add(at);
         }
         Collections.reverse(path);
-        return new PathResult(path, path.size() - 1); // Edge 數為節點數 - 1
+        
+        return new PathResult(path, path.size() - 1);
     }
 
     public static void main(String[] args) {
         Map<String, List<String>> metro = Map.of(
-            "StationA", List.of("StationB", "StationC"),
-            "StationB", List.of("StationA", "StationD"),
-            "StationC", List.of("StationA", "StationD", "StationE"),
-            "StationD", List.of("StationB", "StationC", "StationF"),
-            "StationE", List.of("StationC", "StationF"),
-            "StationF", List.of("StationD", "StationE"),
-            "Unreachable", List.of()
+            "TPE", List.of("ZSN", "XMN"),
+            "ZSN", List.of("TPE", "BQA"),
+            "XMN", List.of("TPE", "BQA", "SGN"),
+            "BQA", List.of("ZSN", "XMN"),
+            "SGN", List.of("XMN")
         );
 
-        System.out.println("一般案例 (A 到 F): " + findShortestPath(metro, "StationA", "StationF"));
-        System.out.println("邊界案例 (A 到 A): " + findShortestPath(metro, "StationA", "StationA"));
-        System.out.println("邊界案例 (無可達路徑): " + findShortestPath(metro, "StationA", "Unreachable"));
-        System.out.println("邊界案例 (Missing Vertex): " + findShortestPath(metro, "StationA", "GhostStation"));
+        System.out.println(findShortest(metro, "TPE", "BQA"));
+        System.out.println(findShortest(metro, "SGN", "ZSN"));
+        System.out.println(findShortest(metro, "TPE", "TPE"));
+        System.out.println(findShortest(metro, "TPE", "XXX"));
     }
 }

@@ -1,5 +1,6 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -7,65 +8,95 @@ import java.util.Map;
 import java.util.Set;
 
 public class CoursePlanningGraph {
-    // key: 課程, value: 依賴這門課的後續課程清單 (A -> B 代表修 B 之前必須先修 A)
-    private Map<String, List<String>> graph = new HashMap<>();
+    private final Map<String, List<String>> graph = new HashMap<>();
 
-    public void addCourse(String course) {
-        graph.putIfAbsent(course, new ArrayList<>());
+    public boolean addCourse(String courseCode) {
+        if (courseCode == null || courseCode.isBlank()) return false;
+        String code = courseCode.trim().toUpperCase();
+        if (graph.containsKey(code)) return false;
+        graph.put(code, new ArrayList<>());
+        return true;
     }
 
-    public void addPrerequisite(String prereq, String advanced) {
-        addCourse(prereq);
-        addCourse(advanced);
-        graph.get(prereq).add(advanced);
+    public boolean addPrerequisite(String prerequisite, String course) {
+        if (prerequisite == null || course == null) return false;
+        String pre = prerequisite.trim().toUpperCase();
+        String crs = course.trim().toUpperCase();
+        if (!graph.containsKey(pre) || !graph.containsKey(crs)) return false;
+        if (pre.equals(crs)) return false;
+
+        List<String> dependents = graph.get(pre);
+        if (!dependents.contains(crs)) {
+            dependents.add(crs);
+            return true;
+        }
+        return false;
     }
 
-    // 利用 Iterative DFS 尋找所有受影響的課程 (Connected Reachability)
-    public List<String> getAffectedCourses(String failedCourse) {
-        List<String> affected = new ArrayList<>();
-        if (!graph.containsKey(failedCourse)) return affected;
+    public boolean isReachable(String from, String to) {
+        if (from == null || to == null) return false;
+        String f = from.trim().toUpperCase();
+        String t = to.trim().toUpperCase();
+        if (!graph.containsKey(f) || !graph.containsKey(t)) return false;
+        if (f.equals(t)) return true;
 
-        ArrayDeque<String> stack = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
-
-        stack.push(failedCourse);
+        ArrayDeque<String> stack = new ArrayDeque<>();
+        stack.push(f);
 
         while (!stack.isEmpty()) {
             String current = stack.pop();
-            
             if (!visited.add(current)) continue;
-            if (!current.equals(failedCourse)) {
-                affected.add(current); // 不包含觸發的源頭課程本身
-            }
+            if (current.equals(t)) return true;
 
-            for (String next : graph.getOrDefault(current, List.of())) {
+            for (String next : graph.get(current)) {
                 if (!visited.contains(next)) {
                     stack.push(next);
                 }
             }
         }
-        return affected;
+        return false;
+    }
+
+    public List<String> getAffectedCourses(String changedCourse) {
+        List<String> result = new ArrayList<>();
+        if (changedCourse == null) return result;
+        String start = changedCourse.trim().toUpperCase();
+        if (!graph.containsKey(start)) return result;
+
+        Set<String> visited = new HashSet<>();
+        ArrayDeque<String> stack = new ArrayDeque<>();
+        stack.push(start);
+
+        while (!stack.isEmpty()) {
+            String current = stack.pop();
+            if (!visited.add(current)) continue;
+            if (!current.equals(start)) {
+                result.add(current);
+            }
+            for (String next : graph.get(current)) {
+                if (!visited.contains(next)) {
+                    stack.push(next);
+                }
+            }
+        }
+        Collections.sort(result);
+        return result;
     }
 
     public static void main(String[] args) {
-        CoursePlanningGraph planning = new CoursePlanningGraph();
-        
-        planning.addPrerequisite("微積分一", "微積分二");
-        planning.addPrerequisite("微積分二", "工程數學");
-        planning.addPrerequisite("微積分二", "物理學");
-        planning.addPrerequisite("基礎程式", "資料結構");
-        planning.addPrerequisite("資料結構", "演算法");
-        planning.addCourse("通識課"); // 孤立節點
+        CoursePlanningGraph plan = new CoursePlanningGraph();
+        plan.addCourse("CS101");
+        plan.addCourse("CS102");
+        plan.addCourse("CS201");
+        plan.addCourse("CS301");
 
-        System.out.println("一般案例 (微積分一 被當掉，受影響的課): " + planning.getAffectedCourses("微積分一"));
-        System.out.println("一般案例 (資料結構 被當掉，受影響的課): " + planning.getAffectedCourses("資料結構"));
-        System.out.println("邊界案例 (無後續課程，如 通識課): " + planning.getAffectedCourses("通識課"));
-        System.out.println("邊界案例 (Missing Vertex): " + planning.getAffectedCourses("不存在的課"));
-        
-        // 邊界案例: Cycle 處理 (現實中不可能有循環先修，但演算法必須防止無限迴圈)
-        planning.addPrerequisite("A", "B");
-        planning.addPrerequisite("B", "C");
-        planning.addPrerequisite("C", "A");
-        System.out.println("邊界案例 (惡意 Cycle，A被當): " + planning.getAffectedCourses("A"));
+        plan.addPrerequisite("CS101", "CS102");
+        plan.addPrerequisite("CS101", "CS201");
+        plan.addPrerequisite("CS201", "CS301");
+
+        System.out.println("CS101 can reach CS301: " + plan.isReachable("CS101", "CS301"));
+        System.out.println("CS102 can reach CS301: " + plan.isReachable("CS102", "CS301"));
+        System.out.println("Affected by CS101 change: " + plan.getAffectedCourses("CS101"));
     }
 }
