@@ -1,6 +1,7 @@
 class BugNode {
     int value;
-    BugNode left, right;
+    BugNode left;
+    BugNode right;
 
     BugNode(int value) {
         this.value = value;
@@ -9,11 +10,11 @@ class BugNode {
 
 public class TreeBugLab {
 
-    static boolean searchBug(BugNode root, int target) {
+    static boolean searchBuggy(BugNode root, int target) {
         BugNode current = root;
         while (current != null) {
             if (target == current.value) return true;
-            current = target > current.value ? current.left : current.right;
+            current = target < current.value ? current.right : current.left; 
         }
         return false;
     }
@@ -27,64 +28,102 @@ public class TreeBugLab {
         return false;
     }
 
-    static void inorderBug(BugNode node) {
+    static void inorderBuggy(BugNode node) {
         if (node == null) return;
-        // Bug: 先走 right 再走 left，結果會變成降冪排列
-        inorderBug(node.right);
         System.out.print(node.value + " ");
-        inorderBug(node.left);
+        inorderBuggy(node.left);
+        inorderBuggy(node.right);
     }
 
     static void inorderFixed(BugNode node) {
         if (node == null) return;
-        // Fix: 嚴格遵守 left -> node -> right
         inorderFixed(node.left);
         System.out.print(node.value + " ");
         inorderFixed(node.right);
     }
 
-    static BugNode deleteOneChildBug(BugNode node) {
-        // 假設這是處理目標節點的片段
-        // Bug: 這會把 node.right 的整串子樹切斷！
-        if (node.left == null) return null; 
-        if (node.right == null) return node.left;
+    static BugNode removeBuggy(BugNode node, int target) {
+        if (node == null) return null;
+        if (target < node.value) {
+            node.left = removeBuggy(node.left, target);
+        } else if (target > node.value) {
+            node.right = removeBuggy(node.right, target);
+        } else {
+            if (node.left == null) return null; 
+            if (node.right == null) return null; 
+            BugNode successor = node.right;
+            while (successor.left != null) successor = successor.left;
+            node.value = successor.value;
+            node.right = removeBuggy(node.right, successor.value);
+        }
         return node;
     }
 
-    static BugNode deleteOneChildFixed(BugNode node) {
-        // Fix: 若左邊是 null，必須把右邊接上去
-        if (node.left == null) return node.right; 
-        if (node.right == null) return node.left;
+    static BugNode removeFixed(BugNode node, int target) {
+        if (node == null) return null;
+        if (target < node.value) {
+            node.left = removeFixed(node.left, target);
+        } else if (target > node.value) {
+            node.right = removeFixed(node.right, target);
+        } else {
+            if (node.left == null) return node.right;
+            if (node.right == null) return node.left;
+            BugNode successor = node.right;
+            while (successor.left != null) successor = successor.left;
+            node.value = successor.value;
+            node.right = removeFixed(node.right, successor.value);
+        }
         return node;
+    }
+
+    static boolean validateBuggy(BugNode node) {
+        if (node == null) return true;
+        if (node.left != null && node.left.value >= node.value) return false;
+        if (node.right != null && node.right.value <= node.value) return false;
+        return validateBuggy(node.left) && validateBuggy(node.right);
+    }
+
+    static boolean validateFixed(BugNode node, long min, long max) {
+        if (node == null) return true;
+        if (node.value <= min || node.value >= max) return false;
+        return validateFixed(node.left, min, node.value) && validateFixed(node.right, node.value, max);
     }
 
     public static void main(String[] args) {
-        System.out.println("=== Tree Bug Lab ===");
-
         BugNode root = new BugNode(50);
         root.left = new BugNode(30);
         root.right = new BugNode(70);
 
-        System.out.println("\n[Test 1] 搜尋 30 (應為 true):");
-        System.out.println("Bug 版結果: " + searchBug(root, 30));   // 預期 false
-        System.out.println("Fix 版結果: " + searchFixed(root, 30)); // 預期 true
+        System.out.println("Search Buggy (30): " + searchBuggy(root, 30));
+        System.out.println("Search Fixed (30): " + searchFixed(root, 30));
 
-        System.out.println("\n[Test 2] Inorder 走訪 (應為 30 50 70):");
-        System.out.print("Bug 版結果: ");
-        inorderBug(root); // 預期 70 50 30
+        System.out.print("Inorder Buggy: ");
+        inorderBuggy(root);
         System.out.println();
-        System.out.print("Fix 版結果: ");
-        inorderFixed(root); // 預期 30 50 70
+        System.out.print("Inorder Fixed: ");
+        inorderFixed(root);
         System.out.println();
 
-        BugNode targetNode = new BugNode(30);
-        targetNode.right = new BugNode(40);
-        
-        System.out.println("\n[Test 3] 刪除 One-child 節點 (原本有右子節點 40):");
-        BugNode bugResult = deleteOneChildBug(targetNode);
-        System.out.println("Bug 版回傳的子樹: " + (bugResult == null ? "null (資料遺失!)" : bugResult.value));
-        
-        BugNode fixResult = deleteOneChildFixed(targetNode);
-        System.out.println("Fix 版回傳的子樹: " + (fixResult != null ? fixResult.value : "null"));
+        BugNode removeTreeBuggy = new BugNode(50);
+        removeTreeBuggy.left = new BugNode(30);
+        removeTreeBuggy.left.left = new BugNode(20);
+        removeTreeBuggy = removeBuggy(removeTreeBuggy, 30);
+        System.out.print("Remove Buggy Result: ");
+        inorderFixed(removeTreeBuggy);
+        System.out.println();
+
+        BugNode removeTreeFixed = new BugNode(50);
+        removeTreeFixed.left = new BugNode(30);
+        removeTreeFixed.left.left = new BugNode(20);
+        removeTreeFixed = removeFixed(removeTreeFixed, 30);
+        System.out.print("Remove Fixed Result: ");
+        inorderFixed(removeTreeFixed);
+        System.out.println();
+
+        BugNode validTree = new BugNode(50);
+        validTree.left = new BugNode(30);
+        validTree.left.right = new BugNode(60); 
+        System.out.println("Validate Buggy: " + validateBuggy(validTree));
+        System.out.println("Validate Fixed: " + validateFixed(validTree, Long.MIN_VALUE, Long.MAX_VALUE));
     }
 }

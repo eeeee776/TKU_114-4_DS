@@ -1,102 +1,144 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class Course0826 {
-    int code;
-    String name;
+class Course {
+    String courseCode;
     int credit;
 
-    Course(int code, String name, int credit) {
-        this.code = code;
-        this.name = name;
-        this.credit = Math.max(1, Math.min(6, credit)); // 限制在 1-6
+    Course(String courseCode, int credit) {
+        this.courseCode = courseCode;
+        this.credit = Math.max(1, Math.min(6, credit));
     }
+
     @Override
-    public String toString() { return String.format("[Code: %d] %s (%d credits)", code, name, credit); }
+    public String toString() {
+        return courseCode + "(" + credit + ")";
+    }
 }
 
 class CourseNode {
-    Course course;
-    CourseNode left, right;
-    CourseNode(Course course) { this.course = course; }
+    Course data;
+    CourseNode left;
+    CourseNode right;
+
+    CourseNode(Course data) {
+        this.data = data;
+    }
 }
 
 public class CourseBstIndex {
     private CourseNode root;
 
-    public boolean add(Course course) {
-        if (course == null) return false;
-        if (root == null) { root = new CourseNode(course); return true; }
+    boolean add(String code, int credit) {
+        if (code == null || code.isBlank()) return false;
+        Course course = new Course(code, credit);
+        if (root == null) {
+            root = new CourseNode(course);
+            return true;
+        }
         CourseNode current = root;
         while (true) {
-            if (course.code == current.course.code) return false; // Duplicate
-            if (course.code < current.course.code) {
-                if (current.left == null) { current.left = new CourseNode(course); return true; }
+            int cmp = code.compareTo(current.data.courseCode);
+            if (cmp == 0) return false;
+            if (cmp < 0) {
+                if (current.left == null) {
+                    current.left = new CourseNode(course);
+                    return true;
+                }
                 current = current.left;
             } else {
-                if (current.right == null) { current.right = new CourseNode(course); return true; }
+                if (current.right == null) {
+                    current.right = new CourseNode(course);
+                    return true;
+                }
                 current = current.right;
             }
         }
     }
 
-    public Course find(int code) {
+    Course find(String code) {
+        if (code == null) return null;
         CourseNode current = root;
         while (current != null) {
-            if (code == current.course.code) return current.course;
-            current = code < current.course.code ? current.left : current.right;
+            int cmp = code.compareTo(current.data.courseCode);
+            if (cmp == 0) return current.data;
+            current = cmp < 0 ? current.left : current.right;
         }
         return null;
     }
 
-    public boolean updateCredit(int code, int newCredit) {
+    boolean updateCredit(String code, int credit) {
         Course c = find(code);
         if (c == null) return false;
-        c.credit = Math.max(1, Math.min(6, newCredit));
+        c.credit = Math.max(1, Math.min(6, credit));
         return true;
     }
 
-    public List<Course> rangeQuery(int low, int high) {
+    boolean remove(String code) {
+        if (find(code) == null) return false;
+        root = removeHelper(root, code);
+        return true;
+    }
+
+    private CourseNode removeHelper(CourseNode node, String code) {
+        if (node == null) return null;
+        int cmp = code.compareTo(node.data.courseCode);
+        if (cmp < 0) {
+            node.left = removeHelper(node.left, code);
+        } else if (cmp > 0) {
+            node.right = removeHelper(node.right, code);
+        } else {
+            if (node.left == null) return node.right;
+            if (node.right == null) return node.left;
+            CourseNode successor = node.right;
+            while (successor.left != null) successor = successor.left;
+            node.data = successor.data;
+            node.right = removeHelper(node.right, successor.data.courseCode);
+        }
+        return node;
+    }
+
+    List<Course> rangeQuery(String start, String end) {
         List<Course> result = new ArrayList<>();
-        if (low <= high) range(root, low, high, result);
+        if (start != null && end != null && start.compareTo(end) <= 0) {
+            rangeHelper(root, start, end, result);
+        }
         return result;
     }
 
-    private void range(CourseNode node, int low, int high, List<Course> result) {
+    private void rangeHelper(CourseNode node, String start, String end, List<Course> result) {
         if (node == null) return;
-        if (low < node.course.code) range(node.left, low, high, result);
-        if (low <= node.course.code && node.course.code <= high) result.add(node.course);
-        if (node.course.code < high) range(node.right, low, high, result);
+        if (node.data.courseCode.compareTo(start) > 0) rangeHelper(node.left, start, end, result);
+        if (node.data.courseCode.compareTo(start) >= 0 && node.data.courseCode.compareTo(end) <= 0) {
+            result.add(node.data);
+        }
+        if (node.data.courseCode.compareTo(end) < 0) rangeHelper(node.right, start, end, result);
     }
 
-    public void report() {
-        System.out.println("=== Course Sorted Report ===");
-        inorder(root);
-    }
-    
-    private void inorder(CourseNode node) {
-        if (node == null) return;
-        inorder(node.left);
-        System.out.println(node.course);
-        inorder(node.right);
+    void printReport() {
+        inorderHelper(root);
+        System.out.println();
     }
 
-    // 為了精簡程式碼，略去 remove 實作 (與上課範例雷同)
-    
+    private void inorderHelper(CourseNode node) {
+        if (node == null) return;
+        inorderHelper(node.left);
+        System.out.print(node.data + " ");
+        inorderHelper(node.right);
+    }
+
     public static void main(String[] args) {
         CourseBstIndex index = new CourseBstIndex();
-        index.add(new Course(105, "Data Structures", 3));
-        index.add(new Course(102, "Calculus", 4));
-        index.add(new Course(108, "Algorithms", 3));
-        index.add(new Course(101, "Programming", 8)); // credit 會被修正為 6
+        index.add("CS101", 3);
+        index.add("MA202", 4);
+        index.add("EE105", 8); 
+        index.add("CS101", 2); 
         
-        System.out.println("Add Duplicate 105: " + index.add(new Course(105, "Fake", 2)));
+        index.printReport();
+        index.updateCredit("EE105", 2);
+        index.remove("MA202");
+        index.printReport();
         
-        index.updateCredit(102, 5); // 4 -> 5
-        
-        index.report();
-        
-        System.out.println("\nRange Query [103, 110]:");
-        for (Course c : index.rangeQuery(103, 110)) System.out.println(c);
+        System.out.println(index.rangeQuery("CS000", "EZ999"));
     }
 }

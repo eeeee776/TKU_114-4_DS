@@ -1,110 +1,141 @@
-class Order {
+import java.util.ArrayList;
+import java.util.List;
+
+class ManageOrder {
     int orderId;
     String customer;
-    int amount; // 金額 >= 0
-    String status; // "PENDING", "SHIPPED", "CANCELLED"
+    int amount;
+    String status;
 
-    Order(int orderId, String customer, int amount) {
+    ManageOrder(int orderId, String customer, int amount) {
         this.orderId = orderId;
         this.customer = customer;
         this.amount = Math.max(0, amount);
-        this.status = "PENDING";
+        this.status = "NEW";
     }
+
     @Override
-    public String toString() { return String.format("Order#%d | %s | $%d | %s", orderId, customer, amount, status); }
+    public String toString() {
+        return orderId + " " + customer + " $" + amount + " [" + status + "]";
+    }
 }
 
-class OrderNode {
-    Order data; OrderNode left, right;
-    OrderNode(Order data) { this.data = data; }
+class ManageOrderNode {
+    ManageOrder data;
+    ManageOrderNode left;
+    ManageOrderNode right;
+
+    ManageOrderNode(ManageOrder data) {
+        this.data = data;
+    }
 }
 
 public class OrderManagementBst {
-    private OrderNode root;
+    private ManageOrderNode root;
 
-    public void add(Order order) {
-        if (root == null) { root = new OrderNode(order); return; }
-        OrderNode cur = root;
+    boolean add(int orderId, String customer, int amount) {
+        ManageOrder order = new ManageOrder(orderId, customer, amount);
+        if (root == null) {
+            root = new ManageOrderNode(order);
+            return true;
+        }
+        ManageOrderNode current = root;
         while (true) {
-            if (order.orderId == cur.data.orderId) return;
-            if (order.orderId < cur.data.orderId) {
-                if (cur.left == null) { cur.left = new OrderNode(order); return; }
-                cur = cur.left;
+            if (orderId == current.data.orderId) return false;
+            if (orderId < current.data.orderId) {
+                if (current.left == null) {
+                    current.left = new ManageOrderNode(order);
+                    return true;
+                }
+                current = current.left;
             } else {
-                if (cur.right == null) { cur.right = new OrderNode(order); return; }
-                cur = cur.right;
+                if (current.right == null) {
+                    current.right = new ManageOrderNode(order);
+                    return true;
+                }
+                current = current.right;
             }
         }
     }
 
-    public Order find(int orderId) {
-        OrderNode cur = root;
-        while (cur != null) {
-            if (orderId == cur.data.orderId) return cur.data;
-            cur = orderId < cur.data.orderId ? cur.left : cur.right;
+    ManageOrder find(int orderId) {
+        ManageOrderNode current = root;
+        while (current != null) {
+            if (orderId == current.data.orderId) return current.data;
+            current = orderId < current.data.orderId ? current.left : current.right;
         }
         return null;
     }
 
-    public boolean updateStatus(int orderId, String newStatus) {
-        Order order = find(orderId);
-        if (order != null) { order.status = newStatus; return true; }
-        return false;
-    }
-
-    public boolean remove(int orderId) {
-        Order order = find(orderId);
-        if (order == null) return false;
-        if (!order.status.equals("CANCELLED")) {
-            System.out.println("Remove failed: Order#" + orderId + " is not CANCELLED.");
-            return false;
-        }
-        root = removeNode(root, orderId);
+    boolean updateStatus(int orderId, String status) {
+        ManageOrder o = find(orderId);
+        if (o == null || status == null || status.isBlank()) return false;
+        o.status = status;
         return true;
     }
 
-    private OrderNode removeNode(OrderNode node, int id) {
-        if (id < node.data.orderId) node.left = removeNode(node.left, id);
-        else if (id > node.data.orderId) node.right = removeNode(node.right, id);
-        else {
+    boolean cancel(int orderId) {
+        return updateStatus(orderId, "CANCELLED");
+    }
+
+    boolean remove(int orderId) {
+        ManageOrder o = find(orderId);
+        if (o == null || !o.status.equals("CANCELLED")) return false;
+        root = removeHelper(root, orderId);
+        return true;
+    }
+
+    private ManageOrderNode removeHelper(ManageOrderNode node, int orderId) {
+        if (node == null) return null;
+        if (orderId < node.data.orderId) {
+            node.left = removeHelper(node.left, orderId);
+        } else if (orderId > node.data.orderId) {
+            node.right = removeHelper(node.right, orderId);
+        } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
-            OrderNode successor = node.right;
+            ManageOrderNode successor = node.right;
             while (successor.left != null) successor = successor.left;
             node.data = successor.data;
-            node.right = removeNode(node.right, successor.data.orderId);
+            node.right = removeHelper(node.right, successor.data.orderId);
         }
         return node;
     }
 
-    // Traversal 計算總有效金額 (不包含已取消的)
-    public long totalActiveAmount() {
-        return calculateAmount(root);
+    List<ManageOrder> idRangeReport(int startId, int endId) {
+        List<ManageOrder> res = new ArrayList<>();
+        if (startId <= endId) rangeHelper(root, startId, endId, res);
+        return res;
     }
-    private long calculateAmount(OrderNode node) {
+
+    private void rangeHelper(ManageOrderNode node, int startId, int endId, List<ManageOrder> res) {
+        if (node == null) return;
+        if (node.data.orderId > startId) rangeHelper(node.left, startId, endId, res);
+        if (node.data.orderId >= startId && node.data.orderId <= endId) res.add(node.data);
+        if (node.data.orderId < endId) rangeHelper(node.right, startId, endId, res);
+    }
+
+    int totalAmount() {
+        return totalAmountHelper(root);
+    }
+
+    private int totalAmountHelper(ManageOrderNode node) {
         if (node == null) return 0;
-        long sum = 0;
-        if (!node.data.status.equals("CANCELLED")) {
-            sum += node.data.amount;
-        }
-        return sum + calculateAmount(node.left) + calculateAmount(node.right);
+        int currentAmount = node.data.status.equals("CANCELLED") ? 0 : node.data.amount;
+        return currentAmount + totalAmountHelper(node.left) + totalAmountHelper(node.right);
     }
 
     public static void main(String[] args) {
         OrderManagementBst sys = new OrderManagementBst();
-        sys.add(new Order(5001, "Alice", 1200));
-        sys.add(new Order(5002, "Bob", 300));
-        sys.add(new Order(5003, "Charlie", 550));
+        sys.add(200, "Amy", 500);
+        sys.add(100, "Ben", 300);
+        sys.add(300, "Cara", -100);
 
-        sys.updateStatus(5002, "CANCELLED");
-        sys.updateStatus(5001, "SHIPPED");
-
-        System.out.println("Total Active Amount: $" + sys.totalActiveAmount()); // 1200 + 550 = 1750
-
-        System.out.println("Try remove SHIPPED order:");
-        sys.remove(5001); // 失敗
-
-        System.out.println("Remove CANCELLED order:");
-        System.out.println("Result: " + sys.remove(5002)); // 成功
+        sys.cancel(100);
+        System.out.println("Remove new: " + sys.remove(200));
+        System.out.println("Remove cancelled: " + sys.remove(100));
+        
+        System.out.println("Total Amount: " + sys.totalAmount());
+        System.out.println("Range [100, 300]: " + sys.idRangeReport(100, 300));
     }
 }

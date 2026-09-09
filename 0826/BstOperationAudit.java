@@ -1,107 +1,146 @@
-import java.util.ArrayList;
-import java.util.List;
-
 class AuditNode {
     int value;
-    AuditNode left, right;
-    AuditNode(int value) { this.value = value; }
+    AuditNode left;
+    AuditNode right;
+
+    AuditNode(int value) {
+        this.value = value;
+    }
 }
 
-public class BstOperationAudit {
+class AuditBst {
     private AuditNode root;
 
-    public void audit(String operation, boolean success) {
-        System.out.printf("[Audit] %-20s | Success: %-5s | Size: %-2d | Height: %-2d | Valid: %-5s | Inorder: %s%n",
-                operation, success, size(root), height(root), isValid(), inorder());
-    }
-
-    public void add(int value) {
-        boolean success = false;
+    boolean add(int value) {
         if (root == null) {
             root = new AuditNode(value);
-            success = true;
-        } else {
-            AuditNode current = root;
-            while (true) {
-                if (value == current.value) break; // success is false
-                if (value < current.value) {
-                    if (current.left == null) { current.left = new AuditNode(value); success = true; break; }
-                    current = current.left;
-                } else {
-                    if (current.right == null) { current.right = new AuditNode(value); success = true; break; }
-                    current = current.right;
+            return true;
+        }
+        AuditNode current = root;
+        while (true) {
+            if (value == current.value) return false;
+            if (value < current.value) {
+                if (current.left == null) {
+                    current.left = new AuditNode(value);
+                    return true;
                 }
+                current = current.left;
+            } else {
+                if (current.right == null) {
+                    current.right = new AuditNode(value);
+                    return true;
+                }
+                current = current.right;
             }
         }
-        audit("Add " + value, success);
     }
 
-    public void remove(int target) {
-        int initialSize = size(root);
-        root = remove(root, target);
-        boolean success = size(root) < initialSize;
-        audit("Remove " + target, success);
+    boolean remove(int value) {
+        if (!contains(value)) return false;
+        root = removeHelper(root, value);
+        return true;
     }
 
-    private AuditNode remove(AuditNode node, int target) {
+    private boolean contains(int value) {
+        AuditNode current = root;
+        while (current != null) {
+            if (value == current.value) return true;
+            current = value < current.value ? current.left : current.right;
+        }
+        return false;
+    }
+
+    private AuditNode removeHelper(AuditNode node, int value) {
         if (node == null) return null;
-        if (target < node.value) node.left = remove(node.left, target);
-        else if (target > node.value) node.right = remove(node.right, target);
-        else {
+        if (value < node.value) {
+            node.left = removeHelper(node.left, value);
+        } else if (value > node.value) {
+            node.right = removeHelper(node.right, value);
+        } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
             AuditNode successor = node.right;
             while (successor.left != null) successor = successor.left;
             node.value = successor.value;
-            node.right = remove(node.right, successor.value);
+            node.right = removeHelper(node.right, successor.value);
         }
         return node;
     }
 
-    private int size(AuditNode node) {
-        if (node == null) return 0;
-        return 1 + size(node.left) + size(node.right);
+    int size() {
+        return sizeHelper(root);
     }
 
-    private int height(AuditNode node) {
-        if (node == null) return -1;
-        return 1 + Math.max(height(node.left), height(node.right));
+    private int sizeHelper(AuditNode node) {
+        return node == null ? 0 : 1 + sizeHelper(node.left) + sizeHelper(node.right);
     }
 
-    private boolean isValid() { return isValid(root, Long.MIN_VALUE, Long.MAX_VALUE); }
-    private boolean isValid(AuditNode node, long min, long max) {
+    int height() {
+        return heightHelper(root);
+    }
+
+    private int heightHelper(AuditNode node) {
+        return node == null ? -1 : 1 + Math.max(heightHelper(node.left), heightHelper(node.right));
+    }
+
+    boolean isValid() {
+        return validHelper(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    private boolean validHelper(AuditNode node, long min, long max) {
         if (node == null) return true;
         if (node.value <= min || node.value >= max) return false;
-        return isValid(node.left, min, node.value) && isValid(node.right, node.value, max);
+        return validHelper(node.left, min, node.value) && validHelper(node.right, node.value, max);
     }
 
-    private List<Integer> inorder() {
-        List<Integer> list = new ArrayList<>();
-        inorder(root, list);
-        return list;
+    void printInorder() {
+        inorderHelper(root);
+        System.out.println();
     }
-    private void inorder(AuditNode node, List<Integer> list) {
+
+    private void inorderHelper(AuditNode node) {
         if (node == null) return;
-        inorder(node.left, list);
-        list.add(node.value);
-        inorder(node.right, list);
+        inorderHelper(node.left);
+        System.out.print(node.value + " ");
+        inorderHelper(node.right);
     }
 
+    void auditAdd(int value) {
+        boolean res = add(value);
+        System.out.println("Operation: ADD " + value + " | Result: " + res);
+        printStats();
+    }
+
+    void auditRemove(int value) {
+        boolean res = remove(value);
+        System.out.println("Operation: REMOVE " + value + " | Result: " + res);
+        printStats();
+    }
+
+    private void printStats() {
+        System.out.print("Inorder: ");
+        printInorder();
+        System.out.println("Size: " + size() + " | Height: " + height() + " | Valid: " + isValid());
+        System.out.println("-------------------------------------------------");
+    }
+}
+
+public class BstOperationAudit {
     public static void main(String[] args) {
-        BstOperationAudit tree = new BstOperationAudit();
-        tree.add(50);
-        tree.add(30);
-        tree.add(70);
-        tree.add(20);
-        tree.add(40);
-        tree.add(60);
-        tree.add(80);
-        
-        System.out.println("\n--- Testing Edge Cases ---");
-        tree.add(50);      // Duplicate
-        tree.remove(999);  // Missing
-        tree.remove(20);   // Leaf delete
-        tree.remove(30);   // One-child delete (40 moves up)
-        tree.remove(50);   // Two-child delete (Root replacement)
+        AuditBst tree = new AuditBst();
+        tree.auditAdd(50);
+        tree.auditAdd(30);
+        tree.auditAdd(70);
+        tree.auditAdd(20);
+        tree.auditAdd(40);
+        tree.auditAdd(60);
+        tree.auditAdd(80);
+
+        tree.auditAdd(50);
+
+        tree.auditRemove(999);
+        tree.auditRemove(20);
+        tree.auditRemove(30);
+        tree.auditRemove(50);
     }
 }

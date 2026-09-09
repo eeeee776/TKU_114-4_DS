@@ -1,68 +1,81 @@
-class ShapeBst {
-    class Node {
-        int value; Node left, right;
-        Node(int value) { this.value = value; }
-    }
-    Node root;
+class ShapeCompNode {
+    int value;
+    ShapeCompNode left;
+    ShapeCompNode right;
+    ShapeCompNode(int value) { this.value = value; }
+}
+
+class ShapeCompBst {
+    ShapeCompNode root;
 
     void add(int value) {
-        if (root == null) { root = new Node(value); return; }
-        Node cur = root;
+        if (root == null) {
+            root = new ShapeCompNode(value);
+            return;
+        }
+        ShapeCompNode current = root;
         while (true) {
-            if (value == cur.value) return;
-            if (value < cur.value) {
-                if (cur.left == null) { cur.left = new Node(value); return; }
-                cur = cur.left;
+            if (value == current.value) return;
+            if (value < current.value) {
+                if (current.left == null) {
+                    current.left = new ShapeCompNode(value);
+                    return;
+                }
+                current = current.left;
             } else {
-                if (cur.right == null) { cur.right = new Node(value); return; }
-                cur = cur.right;
+                if (current.right == null) {
+                    current.right = new ShapeCompNode(value);
+                    return;
+                }
+                current = current.right;
             }
         }
     }
 
-    // 計算特定 key 的搜尋比較次數
-    int countSearchComparisons(int target) {
-        int comparisons = 0;
-        Node cur = root;
-        while (cur != null) {
-            comparisons++;
-            if (target == cur.value) return comparisons;
-            cur = target < cur.value ? cur.left : cur.right;
-        }
-        return comparisons;
+    int height() {
+        return heightHelper(root);
     }
 
-    int height() { return height(root); }
-    private int height(Node node) {
+    private int heightHelper(ShapeCompNode node) {
         if (node == null) return -1;
-        return 1 + Math.max(height(node.left), height(node.right));
+        return 1 + Math.max(heightHelper(node.left), heightHelper(node.right));
+    }
+
+    int getSearchComparisons(int target) {
+        int count = 0;
+        ShapeCompNode current = root;
+        while (current != null) {
+            count++;
+            if (target == current.value) return count;
+            current = target < current.value ? current.left : current.right;
+        }
+        return count;
+    }
+
+    int getTotalSearchComparisons(int[] targets) {
+        int total = 0;
+        for (int t : targets) total += getSearchComparisons(t);
+        return total;
     }
 }
 
 public class TreeShapeComparison {
-    public static void runTest(String label, int[] data) {
-        ShapeBst tree = new ShapeBst();
-        for (int d : data) tree.add(d);
-
-        int totalSuccessComps = 0;
-        for (int i = 1; i <= 15; i++) {
-            totalSuccessComps += tree.countSearchComparisons(i);
-        }
-        
-        int missingComps = tree.countSearchComparisons(99);
-
-        System.out.printf("%-12s | Height: %-2d | Total Success Comps: %-3d | Missing Key(99) Comps: %-2d%n",
-                label, tree.height(), totalSuccessComps, missingComps);
-    }
-
     public static void main(String[] args) {
-        int[] asc = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        int[] desc = {15,14,13,12,11,10,9,8,7,6,5,4,3,2,1};
+        int[] asc = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        int[] desc = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
         int[] balanced = {8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15};
 
-        System.out.println("=== Tree Shape Performance Comparison ===");
-        runTest("Ascending", asc);
-        runTest("Descending", desc);
-        runTest("Balanced", balanced);
+        ShapeCompBst tAsc = new ShapeCompBst();
+        for (int v : asc) tAsc.add(v);
+
+        ShapeCompBst tDesc = new ShapeCompBst();
+        for (int v : desc) tDesc.add(v);
+
+        ShapeCompBst tBal = new ShapeCompBst();
+        for (int v : balanced) tBal.add(v);
+
+        System.out.println("Ascending  | Height: " + tAsc.height() + " | All Keys Comps: " + tAsc.getTotalSearchComparisons(asc) + " | Missing (99) Comps: " + tAsc.getSearchComparisons(99));
+        System.out.println("Descending | Height: " + tDesc.height() + " | All Keys Comps: " + tDesc.getTotalSearchComparisons(desc) + " | Missing (99) Comps: " + tDesc.getSearchComparisons(99));
+        System.out.println("Balanced   | Height: " + tBal.height() + " | All Keys Comps: " + tBal.getTotalSearchComparisons(balanced) + " | Missing (99) Comps: " + tBal.getSearchComparisons(99));
     }
 }

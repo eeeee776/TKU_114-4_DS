@@ -1,81 +1,95 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class RangeNode {
+class StatNode {
     int value;
-    RangeNode left, right;
-    RangeNode(int value) { this.value = value; }
+    StatNode left;
+    StatNode right;
+
+    StatNode(int value) {
+        this.value = value;
+    }
 }
 
 public class BstRangeStatistics {
-    private RangeNode root;
+    private StatNode root;
 
-    public void add(int value) {
-        if (root == null) { root = new RangeNode(value); return; }
-        RangeNode current = root;
+    boolean add(int value) {
+        if (root == null) {
+            root = new StatNode(value);
+            return true;
+        }
+        StatNode current = root;
         while (true) {
-            if (value == current.value) return;
+            if (value == current.value) return false;
             if (value < current.value) {
-                if (current.left == null) { current.left = new RangeNode(value); return; }
+                if (current.left == null) {
+                    current.left = new StatNode(value);
+                    return true;
+                }
                 current = current.left;
             } else {
-                if (current.right == null) { current.right = new RangeNode(value); return; }
+                if (current.right == null) {
+                    current.right = new StatNode(value);
+                    return true;
+                }
                 current = current.right;
             }
         }
     }
 
-    // 1. valuesBetween
-    public List<Integer> valuesBetween(int low, int high) {
-        List<Integer> result = new ArrayList<>();
-        if (low <= high) valuesBetween(root, low, high, result);
-        return result;
-    }
-    private void valuesBetween(RangeNode node, int low, int high, List<Integer> result) {
-        if (node == null) return;
-        if (low < node.value) valuesBetween(node.left, low, high, result); // 左剪枝
-        if (low <= node.value && node.value <= high) result.add(node.value);
-        if (node.value < high) valuesBetween(node.right, low, high, result); // 右剪枝
+    List<Integer> valuesBetween(int low, int high) {
+        List<Integer> list = new ArrayList<>();
+        if (low <= high) valuesHelper(root, low, high, list);
+        return list;
     }
 
-    // 2. countBetween
-    public int countBetween(int low, int high) {
-        if (low > high) return 0;
-        return countBetween(root, low, high);
+    private void valuesHelper(StatNode node, int low, int high, List<Integer> list) {
+        if (node == null) return;
+        if (node.value > low) valuesHelper(node.left, low, high, list);
+        if (node.value >= low && node.value <= high) list.add(node.value);
+        if (node.value < high) valuesHelper(node.right, low, high, list);
     }
-    private int countBetween(RangeNode node, int low, int high) {
+
+    int countBetween(int low, int high) {
+        if (low > high) return 0;
+        return countHelper(root, low, high);
+    }
+
+    private int countHelper(StatNode node, int low, int high) {
         if (node == null) return 0;
         int count = 0;
-        if (low < node.value) count += countBetween(node.left, low, high);
-        if (low <= node.value && node.value <= high) count++;
-        if (node.value < high) count += countBetween(node.right, low, high);
+        if (node.value > low) count += countHelper(node.left, low, high);
+        if (node.value >= low && node.value <= high) count++;
+        if (node.value < high) count += countHelper(node.right, low, high);
         return count;
     }
 
-    // 3. sumBetween
-    public int sumBetween(int low, int high) {
+    int sumBetween(int low, int high) {
         if (low > high) return 0;
-        return sumBetween(root, low, high);
+        return sumHelper(root, low, high);
     }
-    private int sumBetween(RangeNode node, int low, int high) {
+
+    private int sumHelper(StatNode node, int low, int high) {
         if (node == null) return 0;
         int sum = 0;
-        if (low < node.value) sum += sumBetween(node.left, low, high);
-        if (low <= node.value && node.value <= high) sum += node.value;
-        if (node.value < high) sum += sumBetween(node.right, low, high);
+        if (node.value > low) sum += sumHelper(node.left, low, high);
+        if (node.value >= low && node.value <= high) sum += node.value;
+        if (node.value < high) sum += sumHelper(node.right, low, high);
         return sum;
     }
 
     public static void main(String[] args) {
         BstRangeStatistics tree = new BstRangeStatistics();
-        for (int v : new int[]{50, 30, 70, 20, 40, 60, 80}) tree.add(v);
+        int[] data = {50, 30, 70, 20, 40, 60, 80};
+        for (int v : data) tree.add(v);
 
-        System.out.println("Values [35, 75]: " + tree.valuesBetween(35, 75)); // [40, 50, 60, 70]
-        System.out.println("Count  [35, 75]: " + tree.countBetween(35, 75));  // 4
-        System.out.println("Sum    [35, 75]: " + tree.sumBetween(35, 75));    // 40+50+60+70 = 220
-        
-        System.out.println("\nEdge Case: low > high [80, 20]");
-        System.out.println("Values: " + tree.valuesBetween(80, 20)); // []
-        System.out.println("Count:  " + tree.countBetween(80, 20));  // 0
+        System.out.println("Values [35, 70]: " + tree.valuesBetween(35, 70));
+        System.out.println("Count [35, 70]: " + tree.countBetween(35, 70));
+        System.out.println("Sum [35, 70]: " + tree.sumBetween(35, 70));
+
+        System.out.println("Values [70, 35]: " + tree.valuesBetween(70, 35));
+        System.out.println("Count [70, 35]: " + tree.countBetween(70, 35));
+        System.out.println("Sum [70, 35]: " + tree.sumBetween(70, 35));
     }
 }

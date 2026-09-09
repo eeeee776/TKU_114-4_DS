@@ -1,89 +1,62 @@
-import java.util.ArrayList;
-import java.util.List;
-
-class FileNode {
+class FolderNode {
     String name;
-    boolean isDirectory;
-    long size;
-    List<FileNode> children;
+    int ownSize;
+    FolderNode left;
+    FolderNode right;
 
-    FileNode(String name, boolean isDirectory, long size) {
+    FolderNode(String name, int ownSize) {
         this.name = name;
-        this.isDirectory = isDirectory;
-        this.size = size;
-        this.children = new ArrayList<>();
-    }
-
-    void addChild(FileNode child) {
-        if (this.isDirectory) {
-            this.children.add(child);
-        }
+        this.ownSize = ownSize;
     }
 }
 
 public class DirectoryTreeReport {
-    private int totalNodes = 0;
-    private int fileCount = 0;
-    private int dirCount = 0;
-    private FileNode maxFile = null;
+    static int totalNodes = 0;
+    static int fileCount = 0;
+    static int dirCount = 0;
+    static String maxFileName = "";
+    static int maxFileSize = -1;
 
-    // Postorder 統計與容量計算
-    public long analyzePostorder(FileNode node, int depth) {
+    static int processTree(FolderNode node) {
         if (node == null) return 0;
-
+        int leftSize = processTree(node.left);
+        int rightSize = processTree(node.right);
+        int total = node.ownSize + leftSize + rightSize;
+        
         totalNodes++;
-        long currentDirSize = 0;
-
-        if (node.isDirectory) {
-            dirCount++;
-            // 先計算所有 child 的容量 (Postorder)
-            for (FileNode child : node.children) {
-                currentDirSize += analyzePostorder(child, depth + 1);
-            }
-            node.size = currentDirSize; // 更新目錄本身的總容量
-        } else {
+        if (node.left == null && node.right == null) {
             fileCount++;
-            if (maxFile == null || node.size > maxFile.size) {
-                maxFile = node;
+            if (node.ownSize > maxFileSize) {
+                maxFileSize = node.ownSize;
+                maxFileName = node.name;
             }
+        } else {
+            dirCount++;
         }
-        return node.size;
+        return total;
     }
 
-    public int height(FileNode node) {
+    static int height(FolderNode node) {
         if (node == null) return -1;
-        if (!node.isDirectory || node.children.isEmpty()) return 0;
-        int maxHeight = 0;
-        for (FileNode child : node.children) {
-            maxHeight = Math.max(maxHeight, height(child));
-        }
-        return 1 + maxHeight;
+        return 1 + Math.max(height(node.left), height(node.right));
     }
 
     public static void main(String[] args) {
-        FileNode root = new FileNode("root", true, 0);
-        FileNode docs = new FileNode("docs", true, 0);
-        FileNode pics = new FileNode("pics", true, 0);
-        
-        docs.addChild(new FileNode("resume.pdf", false, 1024));
-        docs.addChild(new FileNode("notes.txt", false, 256));
-        
-        pics.addChild(new FileNode("vacation.jpg", false, 4096));
-        pics.addChild(new FileNode("profile.png", false, 2048));
+        FolderNode root = new FolderNode("root", 0);
+        root.left = new FolderNode("docs", 0);
+        root.right = new FolderNode("images", 0);
+        root.left.left = new FolderNode("resume.pdf", 1024);
+        root.left.right = new FolderNode("todo.txt", 12);
+        root.right.left = new FolderNode("photo.png", 2048);
+        root.right.right = new FolderNode("logo.jpg", 512);
 
-        root.addChild(docs);
-        root.addChild(pics);
-        root.addChild(new FileNode("config.xml", false, 512));
+        int totalSize = processTree(root);
 
-        DirectoryTreeReport report = new DirectoryTreeReport();
-        long totalSize = report.analyzePostorder(root, 0);
-
-        System.out.println("=== Directory Tree Report ===");
-        System.out.println("Total Nodes: " + report.totalNodes);
-        System.out.println("File Count: " + report.fileCount);
-        System.out.println("Dir Count: " + report.dirCount);
-        System.out.println("Tree Height: " + report.height(root));
-        System.out.println("Total Root Size: " + totalSize + " bytes");
-        System.out.println("Max File: " + (report.maxFile != null ? report.maxFile.name + " (" + report.maxFile.size + " bytes)" : "None"));
+        System.out.println("Total Size: " + totalSize);
+        System.out.println("Total Nodes: " + totalNodes);
+        System.out.println("Directory Count: " + dirCount);
+        System.out.println("File Count (Leaves): " + fileCount);
+        System.out.println("Height: " + height(root));
+        System.out.println("Max File: " + maxFileName + " (" + maxFileSize + ")");
     }
 }

@@ -1,50 +1,58 @@
-class ExpNode {
+class ExprNode {
     String value;
-    ExpNode left, right;
+    ExprNode left;
+    ExprNode right;
 
-    ExpNode(String value) {
+    ExprNode(String value) {
         this.value = value;
-    }
-    
-    // 判斷是否為葉節點 (運算元)
-    boolean isLeaf() {
-        return left == null && right == null;
     }
 }
 
 public class TraversalSelector {
-
-    // Preorder -> Prefix (前置式)
-    public static String prefix(ExpNode node) {
-        if (node == null) return "";
-        return node.value + " " + prefix(node.left) + prefix(node.right);
+    static void preorderPrefix(ExprNode node) {
+        if (node == null) return;
+        System.out.print(node.value + " ");
+        preorderPrefix(node.left);
+        preorderPrefix(node.right);
     }
 
-    // Inorder -> Infix (中置式)，遇到子樹加上括號
-    public static String infix(ExpNode node) {
-        if (node == null) return "";
-        if (node.isLeaf()) return node.value;
-        return "(" + infix(node.left) + " " + node.value + " " + infix(node.right) + ")";
+    static void inorderInfix(ExprNode node) {
+        if (node == null) return;
+        if (node.left == null && node.right == null) {
+            System.out.print(node.value);
+            return;
+        }
+        System.out.print("(");
+        inorderInfix(node.left);
+        System.out.print(" " + node.value + " ");
+        inorderInfix(node.right);
+        System.out.print(")");
     }
 
-    // Postorder -> Postfix (後置式)
-    public static String postfix(ExpNode node) {
-        if (node == null) return "";
-        return postfix(node.left) + postfix(node.right) + node.value + " ";
+    static void postorderPostfix(ExprNode node) {
+        if (node == null) return;
+        postorderPostfix(node.left);
+        postorderPostfix(node.right);
+        System.out.print(node.value + " ");
     }
 
     public static void main(String[] args) {
-        // 建立樹: (A + B) * (C - D)
-        ExpNode root = new ExpNode("*");
-        root.left = new ExpNode("+");
-        root.right = new ExpNode("-");
-        root.left.left = new ExpNode("A");
-        root.left.right = new ExpNode("B");
-        root.right.left = new ExpNode("C");
-        root.right.right = new ExpNode("D");
+        ExprNode root = new ExprNode("*");
+        root.left = new ExprNode("+");
+        root.right = new ExprNode("C");
+        root.left.left = new ExprNode("A");
+        root.left.right = new ExprNode("B");
 
-        System.out.println("Prefix (Preorder):  " + prefix(root).trim());
-        System.out.println("Infix (Inorder):    " + infix(root).trim());
-        System.out.println("Postfix (Postorder):" + postfix(root).trim());
+        System.out.print("Prefix (Preorder): ");
+        preorderPrefix(root);
+        System.out.println();
+
+        System.out.print("Infix (Inorder): ");
+        inorderInfix(root);
+        System.out.println();
+
+        System.out.print("Postfix (Postorder): ");
+        postorderPostfix(root);
+        System.out.println();
     }
 }
