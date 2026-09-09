@@ -3,52 +3,32 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ListImplementationLab {
-
-    static void testListOperations(String listType, List<Integer> list) {
-        System.out.println("=== 測試 " + listType + " ===");
-        
-        // 1. 尾端新增
+    static void testList(List<Integer> list) {
         list.add(10);
         list.add(20);
-        list.add(40);
-        System.out.println("新增後: " + list);
+        list.add(30);
+        list.add(1, 15);
         
-        // 2. 指定位置插入
-        list.add(2, 30);
-        System.out.println("index 2 插入 30: " + list);
+        System.out.println("Contains 20: " + list.contains(20));
+        list.remove(Integer.valueOf(30));
         
-        // 3. 搜尋
-        System.out.println("尋找數值 20 的 index: " + list.indexOf(20));
-        
-        // 4. 刪除 (依 index)
-        list.remove(1); // 刪除 index 1 的元素 (20)
-        System.out.println("刪除 index 1 後: " + list);
-        
-        // 5. 總和
         int sum = 0;
         for (int num : list) {
             sum += num;
         }
-        System.out.println("總和: " + sum + "\n");
+        
+        System.out.println("Result: " + list + ", Sum: " + sum);
     }
 
     public static void main(String[] args) {
-        testListOperations("ArrayList", new ArrayList<>());
-        testListOperations("LinkedList", new LinkedList<>());
+        System.out.println("--- ArrayList 測試 ---");
+        testList(new ArrayList<>());
         
-        /*
-         * 【內部成本差異說明】
-         * 1. 依 index 讀取 (get/set)：
-         *    - ArrayList 透過底層陣列直接定位，時間複雜度為 O(1)。
-         *    - LinkedList 必須從頭或尾逐一走訪節點，時間複雜度為 O(n)。
-         * 
-         * 2. 在中間插入或刪除 (add/remove at index)：
-         *    - ArrayList 需要將該 index 後方的所有元素搬移，成本較高 (O(n))。
-         *    - LinkedList 若已知位置，只需修改節點間的參考 (O(1))，但「尋找該位置」仍需 O(n)。
-         * 
-         * 3. 記憶體空間：
-         *    - ArrayList 的連續記憶體區域性較佳，但擴容時會有短暫的陣列複製成本及未使用的預留空間。
-         *    - LinkedList 每個節點都需要額外空間儲存前後的參考(next/prev reference)，記憶體負擔較大。
-         */
+        System.out.println("\n--- LinkedList 測試 ---");
+        testList(new LinkedList<>());
+        
+        System.out.println("\n--- 內部成本差異說明 ---");
+        System.out.println("ArrayList: 依 index 讀取 (get) 極快，但在中間插入/刪除時，需搬移後方全部元素，成本較高。");
+        System.out.println("LinkedList: 插入/刪除只需改變節點連結，但不支援快速 index 讀取，需從頭走訪，找資料成本較高。");
     }
 }

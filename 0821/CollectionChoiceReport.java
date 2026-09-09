@@ -1,39 +1,37 @@
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CollectionChoiceReport {
     public static void main(String[] args) {
-        System.out.println("=== 集合選擇報告 ===");
-
-        // 1. 保留搜尋紀錄且允許重複 -> List (ArrayList)
+        System.out.println("1. 保留搜尋紀錄且允許重複 (List -> ArrayList)");
         List<String> searchHistory = new ArrayList<>();
-        searchHistory.add("Java 教學");
-        searchHistory.add("Spring Boot");
-        searchHistory.add("Java 教學"); // 允許重複
-        System.out.println("1. 搜尋紀錄 (List/ArrayList): " + searchHistory);
+        searchHistory.add("Java"); searchHistory.add("Python"); searchHistory.add("Java");
+        System.out.println("   結果: " + searchHistory);
 
-        // 2. 保存不重複會員編號 -> Set (HashSet)
+        System.out.println("\n2. 保存不重複會員編號 (Set -> HashSet)");
         Set<String> memberIds = new HashSet<>();
-        memberIds.add("M001");
-        memberIds.add("M002");
-        memberIds.add("M001"); // 自動去重
-        System.out.println("2. 會員編號 (Set/HashSet): " + memberIds);
+        memberIds.add("M101"); memberIds.add("M102"); memberIds.add("M101");
+        System.out.println("   結果: " + memberIds);
 
-        // 3. 以學號查詢成績 -> Map (HashMap)
-        Map<String, Integer> grades = new HashMap<>();
-        grades.put("S01", 95);
-        grades.put("S02", 88);
-        System.out.println("3. 成績查詢 (Map/HashMap) S01 成績: " + grades.get("S01"));
+        System.out.println("\n3. 以學號查詢成績 (Map -> HashMap)");
+        Map<String, Integer> scores = new HashMap<>();
+        scores.put("S01", 95); scores.put("S02", 88);
+        System.out.println("   S01 成績: " + scores.get("S01"));
 
-        // 4. 依到達順序處理列印工作 -> Queue (ArrayDeque)
-        Queue<String> printJobs = new ArrayDeque<>();
-        printJobs.offer("文件A");
-        printJobs.offer("文件B");
-        System.out.println("4. 列印工作 (Queue/ArrayDeque) 下一個處理: " + printJobs.poll());
+        System.out.println("\n4. 依到達順序處理列印工作 (Queue -> ArrayDeque)");
+        Deque<String> printQueue = new ArrayDeque<>();
+        printQueue.offerLast("Doc1"); printQueue.offerLast("Doc2");
+        System.out.println("   列印: " + printQueue.pollFirst());
 
-        // 5. 復原最近操作 -> Deque 作為 Stack (ArrayDeque)
+        System.out.println("\n5. 復原最近操作 (Stack -> ArrayDeque)");
         Deque<String> undoStack = new ArrayDeque<>();
-        undoStack.push("輸入 A");
-        undoStack.push("輸入 B");
-        System.out.println("5. 復原操作 (Deque/ArrayDeque) 復原: " + undoStack.pop());
+        undoStack.push("Type A"); undoStack.push("Type B");
+        System.out.println("   復原: " + undoStack.pop());
     }
 }

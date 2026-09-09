@@ -1,50 +1,47 @@
 class ArrayStack<T> {
-    private T[] data;
+    private Object[] data;
     private int size;
 
-    @SuppressWarnings("unchecked")
-    public ArrayStack(int capacity) {
-        // Java 不允許直接 new T[]，需透過 Object[] 轉型
-        data = (T[]) new Object[Math.max(1, capacity)];
+    ArrayStack(int capacity) {
+        data = new Object[Math.max(1, capacity)];
     }
 
-    public boolean push(T value) {
-        if (isFull() || value == null) return false;
+    boolean push(T value) {
+        if (isFull()) return false;
         data[size++] = value;
         return true;
     }
 
-    public T pop() {
+    @SuppressWarnings("unchecked")
+    T pop() {
         if (isEmpty()) return null;
-        size--;
-        T value = data[size];
-        data[size] = null; // 清除參考，避免 memory leak
+        T value = (T) data[--size];
+        data[size] = null;
         return value;
     }
 
-    public T peek() {
-        return isEmpty() ? null : data[size - 1];
+    @SuppressWarnings("unchecked")
+    T peek() {
+        return isEmpty() ? null : (T) data[size - 1];
     }
 
-    public int size() { return size; }
-    public boolean isEmpty() { return size == 0; }
-    public boolean isFull() { return size == data.length; }
+    int size() { return size; }
+    boolean isEmpty() { return size == 0; }
+    boolean isFull() { return size == data.length; }
 }
 
 public class GenericArrayStackDemo {
     public static void main(String[] args) {
-        // 測試 String 型態
         ArrayStack<String> stringStack = new ArrayStack<>(2);
-        stringStack.push("Hello");
-        stringStack.push("World");
-        System.out.println("String Stack full? " + stringStack.isFull());
-        System.out.println("String Stack pop: " + stringStack.pop());
+        System.out.println("Push A: " + stringStack.push("A"));
+        System.out.println("Push B: " + stringStack.push("B"));
+        System.out.println("Push C (Full): " + stringStack.push("C"));
+        System.out.println("Pop: " + stringStack.pop());
 
-        // 測試 Integer 型態
         ArrayStack<Integer> intStack = new ArrayStack<>(3);
-        intStack.push(100);
-        intStack.push(200);
-        System.out.println("Integer Stack peek: " + intStack.peek());
-        System.out.println("Integer Stack pop: " + intStack.pop());
+        intStack.push(10);
+        intStack.push(20);
+        System.out.println("Peek Int: " + intStack.peek());
+        System.out.println("Size Int: " + intStack.size());
     }
 }

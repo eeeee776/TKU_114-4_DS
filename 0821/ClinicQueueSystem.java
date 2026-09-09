@@ -4,67 +4,69 @@ import java.util.Deque;
 import java.util.List;
 
 class Patient {
-    String id;
-    String name;
+    private String id;
+    private String name;
 
-    public Patient(String id, String name) {
+    Patient(String id, String name) {
         this.id = id;
         this.name = name;
     }
+
+    String getId() { return id; }
     
     @Override
-    public String toString() { return "[" + id + "] " + name; }
+    public String toString() {
+        return "[" + id + "] " + name;
+    }
 }
 
 public class ClinicQueueSystem {
     private Deque<Patient> waitingQueue = new ArrayDeque<>();
     private List<Patient> completedList = new ArrayList<>();
 
-    public void register(String id, String name) {
+    void register(String id, String name) {
         Patient p = new Patient(id, name);
         waitingQueue.offerLast(p);
         System.out.println("掛號成功: " + p);
     }
 
-    public void cancel(String id) {
-        // 利用 removeIf 走訪並移除特定條件的物件
-        boolean removed = waitingQueue.removeIf(p -> p.id.equals(id));
-        System.out.println("取消病歷號 " + id + (removed ? " 成功。" : " 失敗，查無此人。"));
+    void cancel(String id) {
+        boolean removed = waitingQueue.removeIf(p -> p.getId().equals(id));
+        System.out.println("取消掛號 (" + id + "): " + (removed ? "成功" : "找不到病歷號"));
     }
 
-    public void callNext() {
+    void callNext() {
         Patient p = waitingQueue.pollFirst();
-        if (p == null) {
-            System.out.println("目前無人等候。");
-        } else {
-            System.out.println("請進診間: " + p);
+        if (p != null) {
             completedList.add(p);
+            System.out.println("請進診間: " + p);
+        } else {
+            System.out.println("目前無人等候。");
         }
     }
 
-    public void peekNext() {
+    void peekNext() {
         Patient p = waitingQueue.peekFirst();
-        System.out.println("下一位: " + (p == null ? "無" : p));
+        System.out.println("下一位: " + (p != null ? p : "無"));
     }
 
-    public void printCompleted() {
-        System.out.println("=== 當日完成清單 ===");
-        completedList.forEach(System.out::println);
-        System.out.println("==================\n");
+    void printCompleted() {
+        System.out.println("當日完成清單: " + completedList);
     }
 
     public static void main(String[] args) {
         ClinicQueueSystem clinic = new ClinicQueueSystem();
-        clinic.register("A01", "王小明");
-        clinic.register("A02", "李小華");
-        clinic.register("A03", "陳大牛");
-
-        clinic.peekNext(); // A01
-        clinic.cancel("A02"); // 取消成功
+        clinic.register("P01", "Amy");
+        clinic.register("P02", "Ben");
+        clinic.register("P03", "Cara");
         
-        clinic.callNext(); // 叫號 A01
-        clinic.callNext(); // 叫號 A03 (因為 A02 被取消了)
-        clinic.callNext(); // 無人等候
+        clinic.peekNext();
+        clinic.cancel("P02"); 
+        clinic.cancel("P99"); 
+        
+        clinic.callNext();
+        clinic.callNext();
+        clinic.callNext();
         
         clinic.printCompleted();
     }

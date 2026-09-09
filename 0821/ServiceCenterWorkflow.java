@@ -1,98 +1,103 @@
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 class ServiceTicket {
-    String id;
-    String description;
-    String status; // WAITING, COMPLETED, CANCELLED
+    private String id;
+    private String desc;
+    private String status; 
 
-    public ServiceTicket(String id, String description) {
+    ServiceTicket(String id, String desc) {
         this.id = id;
-        this.description = description;
-        this.status = "WAITING";
+        this.desc = desc;
+        this.status = "Waiting";
     }
-    @Override public String toString() { return id + " [" + status + "] " + description; }
+
+    String getId() { return id; }
+    void setStatus(String status) { this.status = status; }
+
+    @Override
+    public String toString() {
+        return id + " (" + desc + ") - " + status;
+    }
 }
 
 public class ServiceCenterWorkflow {
-    private Map<String, ServiceTicket> ticketMap = new HashMap<>();
-    private Set<String> existingIds = new HashSet<>();
+    private Map<String, ServiceTicket> map = new HashMap<>();
     private Deque<ServiceTicket> waitingQueue = new ArrayDeque<>();
     private Deque<ServiceTicket> completedStack = new ArrayDeque<>();
+    private Set<String> idSet = new HashSet<>();
 
-    public void createTicket(String id, String desc) {
-        if (!existingIds.add(id)) {
-            System.out.println("錯誤：票號 " + id + " 已存在。");
-            return;
-        }
+    boolean createTicket(String id, String desc) {
+        if (!idSet.add(id)) return false;
         ServiceTicket ticket = new ServiceTicket(id, desc);
-        ticketMap.put(id, ticket);
+        map.put(id, ticket);
         waitingQueue.offerLast(ticket);
-        System.out.println("建立票券: " + ticket);
+        return true;
     }
 
-    public void processNext() {
+    void processNext() {
         ServiceTicket ticket = waitingQueue.pollFirst();
-        if (ticket == null) {
-            System.out.println("目前無等待中的票券。");
-            return;
+        if (ticket != null) {
+            ticket.setStatus("Completed");
+            completedStack.push(ticket);
+            System.out.println("處理完成: " + ticket);
+        } else {
+            System.out.println("目前無等待中工單");
         }
-        ticket.status = "COMPLETED";
-        completedStack.push(ticket);
-        System.out.println("處理完成: " + ticket);
     }
 
-    public void cancelWaiting(String id) {
-        ServiceTicket ticket = ticketMap.get(id);
-        if (ticket == null || !ticket.status.equals("WAITING")) {
-            System.out.println("取消失敗：找不到票號 " + id + " 或該票券不在等待中。");
-            return;
+    void cancelWaiting(String id) {
+        ServiceTicket ticket = map.get(id);
+        if (ticket != null && ticket.toString().contains("Waiting")) {
+            waitingQueue.remove(ticket);
+            ticket.setStatus("Cancelled");
+            System.out.println("已取消: " + ticket);
+        } else {
+            System.out.println("取消失敗: 找不到或非等待中工單 (" + id + ")");
         }
-        ticket.status = "CANCELLED";
-        waitingQueue.remove(ticket); // 將其從 Queue 移除，Map 依然保留以供查詢
-        System.out.println("已取消票券: " + ticket);
     }
 
-    public void undoLastCompletion() {
+    void undoLastCompletion() {
         ServiceTicket ticket = completedStack.pollFirst();
-        if (ticket == null) {
-            System.out.println("復原失敗：沒有已完成的票券。");
-            return;
+        if (ticket != null) {
+            ticket.setStatus("Waiting");
+            waitingQueue.offerFirst(ticket); 
+            System.out.println("已復原至等待隊列最前方: " + ticket);
+        } else {
+            System.out.println("復原失敗: 無已完成工單");
         }
-        ticket.status = "WAITING";
-        waitingQueue.offerFirst(ticket); // 退回等待隊列的最前面
-        System.out.println("已復原票券狀態: " + ticket);
     }
 
-    public void findById(String id) {
-        ServiceTicket ticket = ticketMap.get(id);
-        System.out.println("查詢結果: " + (ticket != null ? ticket : "查無此票號"));
+    void findById(String id) {
+        System.out.println("查詢 " + id + ": " + (map.containsKey(id) ? map.get(id) : "找不到"));
     }
 
-    public void printSummary() {
-        System.out.println("\n--- 狀態總結 ---");
-        System.out.println("等待中: " + waitingQueue.size() + " | 已完成歷程: " + completedStack.size());
-        System.out.println("等待隊列: " + waitingQueue);
-        System.out.println("---------------\n");
+    void printSummary() {
+        System.out.println("狀態統計 -> 待處理: " + waitingQueue.size() + ", 已完成: " + completedStack.size() + ", 總數: " + map.size());
     }
 
     public static void main(String[] args) {
         ServiceCenterWorkflow center = new ServiceCenterWorkflow();
-        center.createTicket("S01", "網路報修");
-        center.createTicket("S02", "密碼重置");
-        center.createTicket("S03", "設備申請");
-        center.createTicket("S01", "重複報修"); // 應該失敗
+        center.createTicket("S01", "Login issue");
+        center.createTicket("S02", "Payment issue");
+        center.createTicket("S03", "Bug report");
+        System.out.println("重複建立 S01: " + center.createTicket("S01", "Another issue"));
 
-        center.cancelWaiting("S02"); // 取消成功
-        center.cancelWaiting("S99"); // 取消不存在
-
-        center.processNext(); // 處理 S01
-        center.printSummary(); // 等待中: S03
-
-        center.undoLastCompletion(); // 復原 S01
-        center.undoLastCompletion(); // 復原失敗 (Stack 為空)
+        center.cancelWaiting("S02");
+        center.cancelWaiting("S99"); 
         
-        center.printSummary(); // 等待中: S01(排第一), S03
+        center.processNext(); 
+        center.processNext(); 
+        center.processNext(); 
         
-        center.findById("S02"); // 應該顯示 CANCELLED
+        center.undoLastCompletion();
+        center.undoLastCompletion(); 
+        
+        center.findById("S01");
+        center.printSummary();
     }
 }

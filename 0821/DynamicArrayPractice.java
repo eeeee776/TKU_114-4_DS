@@ -1,23 +1,21 @@
-
 import java.util.Arrays;
 
 class DynamicArray<T> {
     private Object[] data;
     private int size;
 
-    public DynamicArray(int initialCapacity) {
+    DynamicArray(int initialCapacity) {
         data = new Object[Math.max(1, initialCapacity)];
     }
 
-    public void add(T value) {
+    void add(T value) {
         ensureCapacity();
         data[size++] = value;
     }
 
-    public void add(int index, T value) {
-        if (index < 0 || index > size) throw new IndexOutOfBoundsException("index: " + index);
+    void add(int index, T value) {
+        if (index < 0 || index > size) throw new IndexOutOfBoundsException("Index: " + index);
         ensureCapacity();
-        // 將 index 及其後的元素往後移一格
         for (int i = size; i > index; i--) {
             data[i] = data[i - 1];
         }
@@ -26,34 +24,32 @@ class DynamicArray<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T get(int index) {
+    T get(int index) {
         checkIndex(index);
         return (T) data[index];
     }
 
     @SuppressWarnings("unchecked")
-    public T set(int index, T value) {
+    T set(int index, T value) {
         checkIndex(index);
-        T oldValue = (T) data[index];
+        T old = (T) data[index];
         data[index] = value;
-        return oldValue;
+        return old;
     }
 
     @SuppressWarnings("unchecked")
-    public T remove(int index) {
+    T remove(int index) {
         checkIndex(index);
-        T removedValue = (T) data[index];
-        // 將 index 後的元素往前移一格
+        T removed = (T) data[index];
         for (int i = index; i < size - 1; i++) {
             data[i] = data[i + 1];
         }
-        size--;
-        data[size] = null; // 清除舊參考
-        return removedValue;
+        data[--size] = null;
+        return removed;
     }
 
-    public int size() { return size; }
-    public int capacity() { return data.length; }
+    int size() { return size; }
+    int capacity() { return data.length; }
 
     private void ensureCapacity() {
         if (size == data.length) {
@@ -63,10 +59,10 @@ class DynamicArray<T> {
 
     private void checkIndex(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
+            throw new IndexOutOfBoundsException("Index: " + index);
         }
     }
-
+    
     @Override
     public String toString() {
         return Arrays.toString(Arrays.copyOf(data, size));
@@ -75,27 +71,21 @@ class DynamicArray<T> {
 
 public class DynamicArrayPractice {
     public static void main(String[] args) {
-        DynamicArray<String> list = new DynamicArray<>(2);
+        DynamicArray<String> arr = new DynamicArray<>(2);
+        arr.add("A");
+        arr.add("B");
+        arr.add(1, "X"); 
+        System.out.println("After add at 1: " + arr + ", Capacity: " + arr.capacity());
         
-        list.add("A");
-        list.add("C");
-        list.add(1, "B"); // 觸發擴容，並在中間插入
-        System.out.println("目前陣列: " + list + ", Capacity: " + list.capacity());
-        
-        list.remove(0); // 測試刪除
-        System.out.println("刪除 index 0 後: " + list);
-        
-        // 測試例外情形
+        System.out.println("Removed at 0: " + arr.remove(0));
+        System.out.println("After remove: " + arr);
+
+        DynamicArray<Integer> intArr = new DynamicArray<>(1);
+        intArr.add(100);
         try {
-            list.get(-1);
+            intArr.remove(5);
         } catch (IndexOutOfBoundsException e) {
-            System.out.println("成功捕捉例外: " + e.getMessage());
-        }
-        
-        try {
-            list.remove(list.size());
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("成功捕捉例外: " + e.getMessage());
+            System.out.println("Expected error caught: " + e.getMessage());
         }
     }
 }
