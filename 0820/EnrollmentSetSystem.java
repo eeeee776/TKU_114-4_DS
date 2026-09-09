@@ -3,21 +3,21 @@ import java.util.Objects;
 import java.util.Set;
 
 class Enrollment {
-    private final String studentId;
-    private final String courseCode;
+    private String studentId;
+    private String courseCode;
 
-    public Enrollment(String studentId, String courseCode) {
+    Enrollment(String studentId, String courseCode) {
         this.studentId = studentId;
         this.courseCode = courseCode;
     }
 
-    // 身分由 studentId 與 courseCode 共同決定
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Enrollment that)) return false;
-        return Objects.equals(studentId, that.studentId) && 
-               Objects.equals(courseCode, that.courseCode);
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Enrollment)) return false;
+        Enrollment other = (Enrollment) obj;
+        return Objects.equals(this.studentId, other.studentId) && 
+               Objects.equals(this.courseCode, other.courseCode);
     }
 
     @Override
@@ -27,7 +27,7 @@ class Enrollment {
 
     @Override
     public String toString() {
-        return studentId + " 報名了 " + courseCode;
+        return "[" + studentId + " -> " + courseCode + "]";
     }
 }
 
@@ -35,20 +35,17 @@ public class EnrollmentSetSystem {
     public static void main(String[] args) {
         Set<Enrollment> enrollments = new HashSet<>();
 
-        System.out.println("=== 新增測試 ===");
-        System.out.println("加入 S101 CS101: " + enrollments.add(new Enrollment("S101", "CS101")));
-        System.out.println("加入 S101 MA101 (同一人不同課): " + enrollments.add(new Enrollment("S101", "MA101")));
-        System.out.println("加入 S101 CS101 (同一人重複報名): " + enrollments.add(new Enrollment("S101", "CS101")));
+        System.out.println("Add S01 to Math: " + enrollments.add(new Enrollment("S01", "Math")));
+        System.out.println("Add S01 to Science: " + enrollments.add(new Enrollment("S01", "Science"))); // 同人不同課
+        System.out.println("Add S01 to Math again: " + enrollments.add(new Enrollment("S01", "Math"))); // 同人同課 (應失敗)
+        System.out.println("Add S02 to Math: " + enrollments.add(new Enrollment("S02", "Math")));
+
+        System.out.println("\nAll Enrollments: " + enrollments);
+
+        Enrollment testObj = new Enrollment("S01", "Math");
+        System.out.println("Contains S01-Math (new object): " + enrollments.contains(testObj));
         
-        System.out.println("\n=== Contains 與 Remove 測試 ===");
-        // 刻意 new 一個新的但是身分相同的物件來測試
-        Enrollment testTarget = new Enrollment("S101", "CS101");
-        
-        System.out.println("是否包含 S101 CS101? " + enrollments.contains(testTarget));
-        System.out.println("移除 S101 CS101: " + enrollments.remove(testTarget));
-        System.out.println("移除後是否還包含? " + enrollments.contains(testTarget));
-        
-        System.out.println("\n=== 最終名單 ===");
-        enrollments.forEach(System.out::println);
+        System.out.println("Remove S01-Math (new object): " + enrollments.remove(testObj));
+        System.out.println("After Removal: " + enrollments);
     }
 }

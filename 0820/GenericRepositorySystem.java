@@ -1,72 +1,62 @@
 import java.util.ArrayList;
 import java.util.List;
 
-class Repository<T> {
-    private final List<T> items = new ArrayList<>();
+class Product {
+    private String name;
 
-    public void add(T item) {
-        if (item != null) {
-            items.add(item);
-        }
+    Product(String name) {
+        this.name = name;
     }
 
-    public T get(int index) {
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+class Repository<T> {
+    private List<T> items = new ArrayList<>();
+
+    void add(T item) {
+        items.add(item);
+    }
+
+    T get(int index) {
         if (index >= 0 && index < items.size()) {
             return items.get(index);
         }
         return null;
     }
 
-    public boolean remove(T item) {
-        return items.remove(item);
+    void remove(T item) {
+        items.remove(item);
     }
 
-    public int size() {
+    int size() {
         return items.size();
     }
 
-    public void printAll() {
-        System.out.println("Repository 內容 (共 " + size() + " 筆):");
-        for (T item : items) {
-            System.out.println(" - " + item);
-        }
-    }
-}
-
-class Product {
-    private final String name;
-    private final int price;
-
-    public Product(String name, int price) {
-        this.name = name;
-        this.price = price;
-    }
-
-    @Override
-    public String toString() {
-        return name + " ($" + price + ")";
+    void printAll() {
+        System.out.println("Repository contents: " + items);
     }
 }
 
 public class GenericRepositorySystem {
     public static void main(String[] args) {
-        // 測試字串 Repository
         Repository<String> stringRepo = new Repository<>();
         stringRepo.add("Java");
-        stringRepo.add("Generics");
+        stringRepo.add("Python");
+        stringRepo.add("C++");
+        System.out.println("String Repo Size: " + stringRepo.size());
+        stringRepo.remove("Python");
         stringRepo.printAll();
 
-        // 測試自訂物件 Repository
         Repository<Product> productRepo = new Repository<>();
-        Product p1 = new Product("Laptop", 35000);
+        Product p1 = new Product("Laptop");
+        Product p2 = new Product("Mouse");
         productRepo.add(p1);
-        productRepo.add(new Product("Mouse", 800));
-        
-        System.out.println("\n移除前：");
-        productRepo.printAll();
-        
-        productRepo.remove(p1);
-        System.out.println("\n移除後：");
+        productRepo.add(p2);
+        System.out.println("Product at index 1: " + productRepo.get(1));
         productRepo.printAll();
     }
 }

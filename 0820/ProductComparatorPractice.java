@@ -1,26 +1,26 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 class StoreProduct implements Comparable<StoreProduct> {
-    private final String id;
-    private final String name;
-    private final int price;
-    private final int stock;
+    private String id;
+    private String name;
+    private int price;
+    private int stock;
 
-    public StoreProduct(String id, String name, int price, int stock) {
+    StoreProduct(String id, String name, int price, int stock) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.stock = stock;
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public int getPrice() { return price; }
-    public int getStock() { return stock; }
+    String getId() { return id; }
+    String getName() { return name; }
+    int getPrice() { return price; }
+    int getStock() { return stock; }
 
-    // Natural order: 依 id 升冪
     @Override
     public int compareTo(StoreProduct other) {
         return this.id.compareTo(other.id);
@@ -28,41 +28,32 @@ class StoreProduct implements Comparable<StoreProduct> {
 
     @Override
     public String toString() {
-        return String.format("[%s] %s - 價格:%d 庫存:%d", id, name, price, stock);
+        return id + " " + name + " $" + price + " (stock:" + stock + ")";
     }
 }
 
 public class ProductComparatorPractice {
     public static void main(String[] args) {
-        List<StoreProduct> products = List.of(
-            new StoreProduct("P03", "Mouse", 500, 10),
-            new StoreProduct("P01", "Keyboard", 1200, 5),
-            new StoreProduct("P05", "Monitor", 5000, 2),
-            new StoreProduct("P02", "USB Cable", 500, 20), // 價格與 Mouse 同
-            new StoreProduct("P04", "Headset", 1500, 5)    // 庫存與 Keyboard 同
-        );
+        List<StoreProduct> products = new ArrayList<>();
+        products.add(new StoreProduct("P03", "Mouse", 500, 10));
+        products.add(new StoreProduct("P01", "Keyboard", 1500, 5));
+        products.add(new StoreProduct("P05", "Monitor", 5000, 5));
+        products.add(new StoreProduct("P02", "USB", 500, 20));
+        products.add(new StoreProduct("P04", "Pad", 300, 20));
 
-        System.out.println("=== 原始加入順序 ===");
-        products.forEach(System.out::println);
-
-        // 1. Natural order (ID 升冪)
         List<StoreProduct> byId = new ArrayList<>(products);
-        byId.sort(null); // 傳入 null 會使用 class 本身的 compareTo
-        System.out.println("\n=== 依 ID 升冪 (Natural Order) ===");
-        byId.forEach(System.out::println);
+        Collections.sort(byId);
+        System.out.println("--- 1. Natural Order (by ID ASC) ---");
+        for (StoreProduct p : byId) System.out.println(p);
 
-        // 2. 依 price 升冪，同價時依 name
-        List<StoreProduct> byPrice = new ArrayList<>(products);
-        byPrice.sort(Comparator.comparingInt(StoreProduct::getPrice)
-                               .thenComparing(StoreProduct::getName));
-        System.out.println("\n=== 依 價格升冪 -> 名稱升冪 ===");
-        byPrice.forEach(System.out::println);
+        List<StoreProduct> byPriceThenName = new ArrayList<>(products);
+        byPriceThenName.sort(Comparator.comparingInt(StoreProduct::getPrice).thenComparing(StoreProduct::getName));
+        System.out.println("\n--- 2. By Price ASC, then Name ASC ---");
+        for (StoreProduct p : byPriceThenName) System.out.println(p);
 
-        // 3. 依 stock 降冪，同庫存時依 id
-        List<StoreProduct> byStock = new ArrayList<>(products);
-        byStock.sort(Comparator.comparingInt(StoreProduct::getStock).reversed()
-                               .thenComparing(StoreProduct::getId));
-        System.out.println("\n=== 依 庫存降冪 -> ID 升冪 ===");
-        byStock.forEach(System.out::println);
+        List<StoreProduct> byStockThenId = new ArrayList<>(products);
+        byStockThenId.sort(Comparator.comparingInt(StoreProduct::getStock).reversed().thenComparing(StoreProduct::getId));
+        System.out.println("\n--- 3. By Stock DESC, then ID ASC ---");
+        for (StoreProduct p : byStockThenId) System.out.println(p);
     }
 }
