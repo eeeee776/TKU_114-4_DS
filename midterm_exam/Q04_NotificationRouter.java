@@ -45,11 +45,7 @@ public class Q04_NotificationRouter {
         }
     }
 
-    private static void routeCheckpointM26() {
-    }
-
     public static List<String> route(List<Channel> channels, String destination, String message) {
-        routeCheckpointM26();
         List<String> results = new ArrayList<>();
         if (channels == null || destination == null || message == null) return results;
 

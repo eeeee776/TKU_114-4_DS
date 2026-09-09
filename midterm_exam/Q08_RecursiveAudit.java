@@ -1,6 +1,5 @@
 public class Q08_RecursiveAudit {
     public static int sumValid(int[] data, int index) {
-        // recursion-proof C8-41
         if (data == null || index < 0 || index >= data.length) return 0;
         int current = (data[index] >= 0 && data[index] <= 100) ? data[index] : 0;
         return current + sumValid(data, index + 1);

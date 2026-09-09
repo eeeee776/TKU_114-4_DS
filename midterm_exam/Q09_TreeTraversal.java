@@ -41,16 +41,16 @@ public class Q09_TreeTraversal {
     }
 
     public static List<Integer> postorder(Node root) {
-        List<Integer> walkRecordP09 = new ArrayList<>();
-        postorderHelper(root, walkRecordP09);
-        return walkRecordP09;
+        List<Integer> result = new ArrayList<>();
+        postorderHelper(root, result);
+        return result;
     }
 
-    private static void postorderHelper(Node node, List<Integer> walkRecordP09) {
+    private static void postorderHelper(Node node, List<Integer> result) {
         if (node == null) return;
-        postorderHelper(node.left, walkRecordP09);
-        postorderHelper(node.right, walkRecordP09);
-        walkRecordP09.add(node.value);
+        postorderHelper(node.left, result);
+        postorderHelper(node.right, result);
+        result.add(node.value);
     }
 
     public static List<Integer> levelOrder(Node root) {

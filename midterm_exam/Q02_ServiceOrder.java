@@ -73,7 +73,6 @@ public class Q02_ServiceOrder {
     }
 
     public List<String> itemSummaries() {
-        // composition-check 8C21-R
         List<String> summaries = new ArrayList<>();
         for (LineItem item : items) {
             summaries.add(item.getName() + ":" + item.subtotal());

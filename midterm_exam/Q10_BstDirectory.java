@@ -57,7 +57,6 @@ public class Q10_BstDirectory {
     }
 
     public List<Integer> searchPath(int target) {
-        // bst-path-check T10-73
         List<Integer> path = new ArrayList<>();
         Node current = root;
         while (current != null) {

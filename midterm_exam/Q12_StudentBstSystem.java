@@ -111,7 +111,6 @@ public class Q12_StudentBstSystem {
     }
 
     public List<Student> studentsBetween(int lowId, int highId) {
-        // student-index-check S12-88
         List<Student> result = new ArrayList<>();
         if (lowId <= highId) {
             rangeHelper(root, lowId, highId, result);

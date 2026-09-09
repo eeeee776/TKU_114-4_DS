@@ -62,10 +62,10 @@ public class Q11_BstDeletion {
         } else {
             if (node.left == null) return node.right;
             if (node.right == null) return node.left;
-            Node successorAuditN11 = node.right;
-            while (successorAuditN11.left != null) successorAuditN11 = successorAuditN11.left;
-            node.value = successorAuditN11.value;
-            node.right = removeHelper(node.right, successorAuditN11.value);
+            Node successor = node.right;
+            while (successor.left != null) successor = successor.left;
+            node.value = successor.value;
+            node.right = removeHelper(node.right, successor.value);
         }
         return node;
     }

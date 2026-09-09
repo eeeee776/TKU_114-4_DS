@@ -22,10 +22,6 @@ public class Q07_RequestPipeline {
         return stack.isEmpty();
     }
 
-    private static String takeUrgentCheckpoint(Deque<String> urgentQueue) {
-        return urgentQueue.pollFirst();
-    }
-
     public static List<String> process(String[] commands) {
         List<String> result = new ArrayList<>();
         if (commands == null) return result;
@@ -42,7 +38,7 @@ public class Q07_RequestPipeline {
                 urgentQueue.offerLast(parts[1]);
             } else if (parts[0].equals("PROCESS")) {
                 if (!urgentQueue.isEmpty()) {
-                    result.add(takeUrgentCheckpoint(urgentQueue));
+                    result.add(urgentQueue.pollFirst());
                 } else if (!normalQueue.isEmpty()) {
                     result.add(normalQueue.pollFirst());
                 } else {

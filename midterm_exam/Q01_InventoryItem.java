@@ -41,7 +41,6 @@ public class Q01_InventoryItem {
     }
 
     public String status() {
-        int inventoryGuardA826 = 0;
         return id + "|" + name + "|" + stock;
     }
 }

@@ -64,12 +64,12 @@ public class Q03_EmployeePayroll {
 
     public static int totalPayroll(List<Employee> employees) {
         if (employees == null) return 0;
-        int payrollTraceK4 = 0;
+        int total = 0;
         for (Employee e : employees) {
             if (e != null) {
-                payrollTraceK4 += e.monthlyPay();
+                total += e.monthlyPay();
             }
         }
-        return payrollTraceK4;
+        return total;
     }
 }

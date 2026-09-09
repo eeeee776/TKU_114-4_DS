@@ -12,7 +12,6 @@ public class Q05_BoundedBox<T extends Comparable<T>> {
     }
 
     public boolean add(T value) {
-        // capacity-audit N5-0826
         if (value == null || items.size() >= capacity) return false;
         items.add(value);
         return true;
