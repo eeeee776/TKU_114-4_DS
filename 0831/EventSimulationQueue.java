@@ -1,74 +1,77 @@
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 
-public class EventSimulationQueue {
-    public record SimulationEvent(String eventId, long timestamp, String type, long sequence) {
-        public SimulationEvent {
-            if (eventId == null || eventId.isBlank()) {
-                throw new IllegalArgumentException("eventId cannot be empty");
-            }
-        }
+class SimulationEvent {
+    long time;
+    String type;
+    long sequence;
+
+    SimulationEvent(long time, String type, long sequence) {
+        this.time = time;
+        this.type = type;
+        this.sequence = sequence;
     }
 
-    private final PriorityQueue<SimulationEvent> eventQueue;
-    private final List<String> executionLog;
+    @Override
+    public String toString() {
+        return "[" + time + "] " + type + " (Seq: " + sequence + ")";
+    }
+}
+
+public class EventSimulationQueue {
+    private PriorityQueue<SimulationEvent> queue;
+    private Map<Long, SimulationEvent> eventMap;
+    private long seqCounter;
 
     public EventSimulationQueue() {
-        Comparator<SimulationEvent> order = Comparator
-                .comparingLong(SimulationEvent::timestamp)
-                .thenComparingLong(SimulationEvent::sequence)
-                .thenComparing(SimulationEvent::eventId);
-        this.eventQueue = new PriorityQueue<>(order);
-        this.executionLog = new ArrayList<>();
+        Comparator<SimulationEvent> comp = Comparator.comparingLong((SimulationEvent e) -> e.time)
+                .thenComparingLong(e -> e.sequence);
+        queue = new PriorityQueue<>(comp);
+        eventMap = new HashMap<>();
+        seqCounter = 0;
     }
 
-    public void schedule(String eventId, long timestamp, String type, long sequence) {
-        eventQueue.offer(new SimulationEvent(eventId, timestamp, type, sequence));
+    public long addEvent(long time, String type) {
+        if (type == null || type.isBlank()) return -1;
+        seqCounter++;
+        SimulationEvent e = new SimulationEvent(time, type, seqCounter);
+        queue.offer(e);
+        eventMap.put(seqCounter, e);
+        return seqCounter;
     }
 
-    public boolean cancel(String eventId) {
-        if (eventId == null) return false;
-        boolean removed = eventQueue.removeIf(e -> e.eventId().equals(eventId));
-        if (removed) {
-            executionLog.add("[CANCELLED] eventId=" + eventId);
+    public boolean cancelEvent(long sequence) {
+        SimulationEvent e = eventMap.remove(sequence);
+        if (e != null) {
+            queue.remove(e);
+            return true;
         }
-        return removed;
+        return false;
     }
 
     public void runSimulation() {
-        while (!eventQueue.isEmpty()) {
-            SimulationEvent current = eventQueue.poll();
-            String logEntry = String.format("[EXECUTED] time=%d | seq=%d | id=%s | type=%s",
-                    current.timestamp(), current.sequence(), current.eventId(), current.type());
-            executionLog.add(logEntry);
+        System.out.println("Starting simulation...");
+        while (!queue.isEmpty()) {
+            SimulationEvent e = queue.poll();
+            eventMap.remove(e.sequence);
+            System.out.println("Executing: " + e);
         }
-    }
-
-    public List<String> getExecutionLog() {
-        return List.copyOf(executionLog);
+        System.out.println("Simulation ended.");
     }
 
     public static void main(String[] args) {
         EventSimulationQueue sim = new EventSimulationQueue();
+        
+        sim.addEvent(100, "Login");
+        long seqToCancel = sim.addEvent(150, "Purchase");
+        sim.addEvent(150, "Click");
+        sim.addEvent(50, "Init");
 
-        sim.schedule("EVT-A", 1000, "TIMER_EXPIRED", 1);
-        sim.schedule("EVT-B", 500, "PACKET_RECEIVED", 2);
-        sim.schedule("EVT-C", 1000, "IO_READY", 0); // 時間相同，但 sequence 較小
-        sim.schedule("EVT-D", 800, "USER_CLICK", 3);
-        sim.schedule("EVT-CANCEL-ME", 600, "BACKGROUND_PING", 4);
+        System.out.println("Cancel event " + seqToCancel + ": " + sim.cancelEvent(seqToCancel));
+        System.out.println("Cancel missing event: " + sim.cancelEvent(999));
 
-        // 取消事件測試
-        sim.cancel("EVT-CANCEL-ME");
-
-        // 執行模擬
         sim.runSimulation();
-
-        // 輸出執行軌跡
-        System.out.println("=== 模擬執行結果日誌 ===");
-        for (String log : sim.getExecutionLog()) {
-            System.out.println(log);
-        }
     }
 }

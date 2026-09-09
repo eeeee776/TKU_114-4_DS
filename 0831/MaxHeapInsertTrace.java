@@ -7,16 +7,15 @@ public class MaxHeapInsertTrace {
     public void add(int value) {
         data.add(value);
         int index = data.size() - 1;
-
         while (index > 0) {
             int parent = (index - 1) / 2;
-            if (data.get(parent) >= data.get(index)) {
-                break;
-            }
-            swap(parent, index);
+            if (data.get(parent) >= data.get(index)) break;
+            int temp = data.get(parent);
+            data.set(parent, data.get(index));
+            data.set(index, temp);
             index = parent;
         }
-        System.out.println("after add " + value + " -> " + data);
+        System.out.println(snapshot());
     }
 
     public Integer peekMax() {
@@ -27,21 +26,12 @@ public class MaxHeapInsertTrace {
         return List.copyOf(data);
     }
 
-    private void swap(int i, int j) {
-        int temp = data.get(i);
-        data.set(i, data.get(j));
-        data.set(j, temp);
-    }
-
     public static void main(String[] args) {
-        MaxHeapInsertTrace maxHeap = new MaxHeapInsertTrace();
-        int[] input = {25, 40, 10, 50, 30, 50};
-
-        for (int val : input) {
-            maxHeap.add(val);
+        MaxHeapInsertTrace heap = new MaxHeapInsertTrace();
+        int[] values = {25, 40, 10, 50, 30, 50};
+        for (int v : values) {
+            heap.add(v);
         }
-
-        System.out.println("Final Heap Snapshot: " + maxHeap.snapshot());
-        System.out.println("Root (peekMax): " + maxHeap.peekMax());
+        System.out.println("Root: " + heap.peekMax());
     }
 }

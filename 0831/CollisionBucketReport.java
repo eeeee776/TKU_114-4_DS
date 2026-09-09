@@ -1,57 +1,43 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class CollisionBucketReport {
-    public static void generateReport(List<Integer> keys, int bucketCount) {
-        if (bucketCount <= 0) {
-            throw new IllegalArgumentException("bucketCount must be positive");
-        }
-
+    static void report(int[] keys, int bucketCount) {
+        if (bucketCount <= 0) return;
         List<List<Integer>> buckets = new ArrayList<>();
         for (int i = 0; i < bucketCount; i++) {
             buckets.add(new ArrayList<>());
         }
-
         if (keys != null) {
-            for (Integer key : keys) {
-                if (key == null) continue;
+            for (int key : keys) {
                 int index = Math.floorMod(Integer.hashCode(key), bucketCount);
-                List<Integer> chain = buckets.get(index);
-                // 依教材語意，相同 key 不重複存入同一 bucket
-                if (!chain.contains(key)) {
-                    chain.add(key);
+                if (!buckets.get(index).contains(key)) {
+                    buckets.get(index).add(key);
                 }
             }
         }
-
         int totalCollisions = 0;
-        int maxChainLength = 0;
-
-        System.out.println("=== Bucket Report (Count: " + bucketCount + ") ===");
-        for (int i = 0; i < bucketCount; i++) {
+        int maxChain = 0;
+        for (int i = 0; i < buckets.size(); i++) {
             List<Integer> chain = buckets.get(i);
-            int size = chain.size();
-            System.out.println("Bucket [" + i + "] (size " + size + "): " + chain);
-
-            if (size > 1) {
-                totalCollisions += (size - 1);
+            System.out.println("Bucket " + i + ": " + chain);
+            if (chain.size() > 1) {
+                totalCollisions += (chain.size() - 1);
             }
-            if (size > maxChainLength) {
-                maxChainLength = size;
+            if (chain.size() > maxChain) {
+                maxChain = chain.size();
             }
         }
-
-        System.out.println("-----------------------------------");
         System.out.println("Total Collisions: " + totalCollisions);
-        System.out.println("Longest Chain Length: " + maxChainLength);
+        System.out.println("Max Chain Length: " + maxChain);
     }
 
     public static void main(String[] args) {
-        List<Integer> keys = List.of(12, -3, 7, 22, -13, 7, 17, 32, 0);
-        generateReport(keys, 5);
-
-        System.out.println("\nTesting Empty List:");
-        generateReport(Collections.emptyList(), 3);
+        int[] keys = {15, -3, 22, 15, 8, 42, 99, -3};
+        report(keys, 5);
+        System.out.println("--- Empty ---");
+        report(new int[]{}, 3);
+        System.out.println("--- Null ---");
+        report(null, 3);
     }
 }

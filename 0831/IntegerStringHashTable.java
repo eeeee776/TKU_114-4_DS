@@ -2,47 +2,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IntegerStringHashTable {
-    private record Entry(int key, String value) {}
+    private record HashEntry(int key, String value) {}
 
-    private final List<List<Entry>> buckets;
+    private final List<List<HashEntry>> buckets;
     private int size;
-    private final int capacity;
 
-    public IntegerStringHashTable(int capacity) {
-        if (capacity <= 0) {
-            throw new IllegalArgumentException("Capacity must be positive");
+    public IntegerStringHashTable(int bucketCount) {
+        if (bucketCount <= 0) throw new IllegalArgumentException("bucketCount must be positive");
+        buckets = new ArrayList<>();
+        for (int i = 0; i < bucketCount; i++) {
+            buckets.add(new ArrayList<>());
         }
-        this.capacity = capacity;
-        this.buckets = new ArrayList<>(capacity);
-        for (int i = 0; i < capacity; i++) {
-            this.buckets.add(new ArrayList<>());
-        }
-        this.size = 0;
+        size = 0;
     }
 
-    private int getBucketIndex(int key) {
-        return Math.floorMod(Integer.hashCode(key), capacity);
+    private int hashIndex(int key) {
+        return Math.floorMod(Integer.hashCode(key), buckets.size());
     }
 
     public void put(int key, String value) {
-        int index = getBucketIndex(key);
-        List<Entry> chain = buckets.get(index);
+        List<HashEntry> chain = buckets.get(hashIndex(key));
         for (int i = 0; i < chain.size(); i++) {
             if (chain.get(i).key() == key) {
-                chain.set(i, new Entry(key, value)); // key 相同，僅更新 value
+                chain.set(i, new HashEntry(key, value));
                 return;
             }
         }
-        chain.add(new Entry(key, value));
+        chain.add(new HashEntry(key, value));
         size++;
     }
 
     public String get(int key) {
-        int index = getBucketIndex(key);
-        for (Entry entry : buckets.get(index)) {
-            if (entry.key() == key) {
-                return entry.value();
-            }
+        List<HashEntry> chain = buckets.get(hashIndex(key));
+        for (HashEntry entry : chain) {
+            if (entry.key() == key) return entry.value();
         }
         return null;
     }
@@ -52,8 +45,7 @@ public class IntegerStringHashTable {
     }
 
     public boolean remove(int key) {
-        int index = getBucketIndex(key);
-        List<Entry> chain = buckets.get(index);
+        List<HashEntry> chain = buckets.get(hashIndex(key));
         for (int i = 0; i < chain.size(); i++) {
             if (chain.get(i).key() == key) {
                 chain.remove(i);
@@ -68,44 +60,27 @@ public class IntegerStringHashTable {
         return size;
     }
 
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
     public void bucketReport() {
-        System.out.println("=== Hash Table 內部 Bucket 狀態 (總數: " + size + ") ===");
-        for (int i = 0; i < capacity; i++) {
-            List<Entry> chain = buckets.get(i);
-            System.out.printf("Bucket [%02d] (長度 %d): ", i, chain.size());
-            for (Entry e : chain) {
-                System.out.print("[" + e.key() + "=" + e.value() + "] -> ");
-            }
-            System.out.println("null");
+        System.out.println("Total size: " + size);
+        for (int i = 0; i < buckets.size(); i++) {
+            System.out.println("Bucket " + i + ": " + buckets.get(i));
         }
     }
 
     public static void main(String[] args) {
-        IntegerStringHashTable table = new IntegerStringHashTable(5);
+        IntegerStringHashTable table = new IntegerStringHashTable(4);
+        table.put(10, "A");
+        table.put(20, "B");
+        table.put(14, "C");
+        table.put(10, "A_UPDATED");
+        table.put(-5, "D");
 
-        table.put(10, "Ten");
-        table.put(15, "Fifteen"); // 10 與 15 在 mod 5 碰撞
-        table.put(-3, "Negative Three");
-        table.put(7, "Seven");
-        table.put(12, "Twelve");
-
-        System.out.println("新增 5 筆資料後的狀態:");
-        table.bucketReport();
-
-        // 覆蓋 key 測試
-        System.out.println("\n更新 key=15 為 'Fifteen-Updated'...");
-        table.put(15, "Fifteen-Updated");
-        System.out.println("size 應維持 5: 實際為 " + table.size());
-        System.out.println("取得 key=15: " + table.get(15));
-
-        // 刪除測試
-        System.out.println("刪除 key=10: " + table.remove(10));
-        System.out.println("再次查詢 key=10 是否存在: " + table.containsKey(10));
-        System.out.println("刪除後 size: " + table.size());
+        System.out.println("Size: " + table.size());
+        System.out.println("Get 10: " + table.get(10));
+        System.out.println("Contains 20: " + table.containsKey(20));
+        System.out.println("Remove 14: " + table.remove(14));
+        System.out.println("Remove 99: " + table.remove(99));
+        
         table.bucketReport();
     }
 }
